@@ -1,5 +1,6 @@
 import type {
   Category,
+  CouponRedemption,
   Merchant,
   MerchantWithCategory,
   Offer,
@@ -136,6 +137,35 @@ export const offers: Offer[] = [
   }
 ];
 
+export const couponRedemptions: CouponRedemption[] = [
+  {
+    id: "red-01",
+    offerId: "off-01",
+    merchantId: "mer-01",
+    couponCode: "PLAZA15",
+    qrToken: "qr-desayuno-local-la-plaza",
+    redeemedAt: "2026-06-05T09:42:00.000Z",
+    notes: "Canje de ejemplo en mostrador",
+    offerTitle: "Desayuno local con 15% de descuento",
+    offerSlug: "desayuno-local-la-plaza",
+    merchantName: "Panadería La Plaza",
+    merchantSlug: "panaderia-la-plaza"
+  },
+  {
+    id: "red-02",
+    offerId: "off-03",
+    merchantId: "mer-02",
+    couponCode: "VERDE5",
+    qrToken: "qr-cesta-temporada-mercado-verde",
+    redeemedAt: "2026-06-06T18:10:00.000Z",
+    notes: "Canje de ejemplo en caja",
+    offerTitle: "5 euros en cesta de temporada",
+    offerSlug: "cesta-temporada-mercado-verde",
+    merchantName: "Mercado Verde",
+    merchantSlug: "mercado-verde"
+  }
+];
+
 export function getMerchantWithCategory(merchant: Merchant): MerchantWithCategory {
   const category = categories.find((item) => item.id === merchant.categoryId);
 
@@ -181,4 +211,8 @@ export function getOfferBySlug(slug: string): OfferWithMerchant | undefined {
 
 export function getOffersByMerchantId(merchantId: string): OfferWithMerchant[] {
   return getOffers().filter((offer) => offer.merchantId === merchantId);
+}
+
+export function getCouponRedemptions(): CouponRedemption[] {
+  return couponRedemptions;
 }

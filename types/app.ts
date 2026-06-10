@@ -36,3 +36,17 @@ export type MerchantWithCategory = Merchant & {
 export type OfferWithMerchant = Offer & {
   merchant: MerchantWithCategory;
 };
+
+export type CouponRedemption = {
+  id: string;
+  offerId: string;
+  merchantId: string;
+  couponCode: string;
+  qrToken?: string;
+  redeemedAt: string;
+  notes?: string;
+  offerTitle: string;
+  offerSlug: string;
+  merchantName: string;
+  merchantSlug: string;
+};
