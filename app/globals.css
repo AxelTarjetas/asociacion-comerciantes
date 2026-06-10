@@ -507,6 +507,13 @@ img {
   padding: 12px 0 48px;
 }
 
+.admin-heading-actions,
+.admin-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .admin-table {
   display: grid;
   gap: 10px;
@@ -543,6 +550,45 @@ img {
   font-weight: 850;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.admin-form {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+  padding: 24px 0 56px;
+}
+
+.admin-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  padding: 12px;
+}
+
+.admin-form textarea {
+  resize: vertical;
+}
+
+.admin-form-error {
+  max-width: 760px;
+  border: 1px solid #f1b9a8;
+  border-radius: var(--radius);
+  background: #fff0eb;
+  color: #8a2d18;
+  padding: 14px 16px;
 }
 
 @media (max-width: 860px) {

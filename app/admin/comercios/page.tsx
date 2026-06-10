@@ -18,9 +18,12 @@ export default async function AdminMerchantsPage() {
           <h1>Comercios</h1>
           <p>Listado de solo lectura para revisar los comercios activos.</p>
         </div>
-        <Button href="/admin" variant="secondary">
-          Volver al admin
-        </Button>
+        <div className="admin-heading-actions">
+          <Button href="/admin/comercios/nuevo">Nuevo comercio</Button>
+          <Button href="/admin" variant="secondary">
+            Volver al admin
+          </Button>
+        </div>
       </section>
 
       <section className="admin-table" aria-label="Listado admin de comercios">
