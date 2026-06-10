@@ -1,8 +1,8 @@
 import { OfferCard } from "@/components/offers/OfferCard";
-import { getOffers } from "@/lib/mock-data";
+import { getOffers } from "@/lib/queries/offers";
 
-export default function OffersPage() {
-  const offers = getOffers();
+export default async function OffersPage() {
+  const offers = await getOffers();
 
   return (
     <div className="page-shell">

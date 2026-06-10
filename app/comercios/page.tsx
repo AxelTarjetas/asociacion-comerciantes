@@ -1,8 +1,14 @@
 import { MerchantCard } from "@/components/merchants/MerchantCard";
-import { categories, getMerchants, getOffersByMerchantId } from "@/lib/mock-data";
+import { getCategories } from "@/lib/queries/categories";
+import { getMerchants } from "@/lib/queries/merchants";
+import { getOffers } from "@/lib/queries/offers";
 
-export default function MerchantsPage() {
-  const merchants = getMerchants();
+export default async function MerchantsPage() {
+  const [categories, merchants, offers] = await Promise.all([
+    getCategories(),
+    getMerchants(),
+    getOffers()
+  ]);
 
   return (
     <div className="page-shell">
@@ -27,7 +33,7 @@ export default function MerchantsPage() {
           <MerchantCard
             key={merchant.id}
             merchant={merchant}
-            offerCount={getOffersByMerchantId(merchant.id).length}
+            offerCount={offers.filter((offer) => offer.merchantId === merchant.id).length}
           />
         ))}
       </section>

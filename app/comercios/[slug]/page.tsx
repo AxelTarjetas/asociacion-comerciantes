@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { OfferCard } from "@/components/offers/OfferCard";
 import { Button } from "@/components/ui/Button";
-import { getMerchantBySlug, getOffersByMerchantId } from "@/lib/mock-data";
+import { getMerchantBySlug } from "@/lib/queries/merchants";
+import { getOffersByMerchantId } from "@/lib/queries/offers";
 
 type MerchantDetailPageProps = {
   params: Promise<{
@@ -11,13 +12,13 @@ type MerchantDetailPageProps = {
 
 export default async function MerchantDetailPage({ params }: MerchantDetailPageProps) {
   const { slug } = await params;
-  const merchant = getMerchantBySlug(slug);
+  const merchant = await getMerchantBySlug(slug);
 
   if (!merchant) {
     notFound();
   }
 
-  const offers = getOffersByMerchantId(merchant.id);
+  const offers = await getOffersByMerchantId(merchant.id);
 
   return (
     <div className="page-shell">

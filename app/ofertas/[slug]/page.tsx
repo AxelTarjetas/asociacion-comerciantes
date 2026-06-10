@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
-import { getOfferBySlug } from "@/lib/mock-data";
+import { getOfferBySlug } from "@/lib/queries/offers";
 
 type OfferDetailPageProps = {
   params: Promise<{
@@ -12,7 +12,7 @@ type OfferDetailPageProps = {
 
 export default async function OfferDetailPage({ params }: OfferDetailPageProps) {
   const { slug } = await params;
-  const offer = getOfferBySlug(slug);
+  const offer = await getOfferBySlug(slug);
 
   if (!offer) {
     notFound();
