@@ -9,12 +9,12 @@ export default function HomePage() {
     <div className="page-shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Comercio local, ofertas activas y cupones medibles</p>
-          <h1>Una plataforma sencilla para que el barrio compre cerca.</h1>
+          <p className="eyebrow">Comercios locales, promociones exclusivas y resultados medibles</p>
+          <h1>Promociones que dan visibilidad y atraen clientes cerca de tu comercio.</h1>
           <p className="hero-copy">
-            Comercio Vivo ayuda a las asociaciones de comerciantes a mostrar negocios
-            locales, publicar promociones útiles y medir cupones por código sin cargar
-            de trabajo a cada comercio.
+            Comercio Vivo ayuda a pequeños negocios a lanzar ofertas claras, llegar a
+            vecinos de su zona y comprobar qué promociones generan interés real antes
+            de escalar el modelo a toda una asociación.
           </p>
           <div className="hero-actions">
             <Button href="/comercios">Ver comercios</Button>
@@ -31,42 +31,60 @@ export default function HomePage() {
           <div className="hero-visual-caption">
             <div className="hero-stat">
               <strong>{merchants.length}</strong>
-              <span>comercios iniciales</span>
+              <span>comercios piloto</span>
             </div>
             <div className="hero-stat">
               <strong>{offers.length}</strong>
-              <span>ofertas activas</span>
+              <span>promociones medibles</span>
             </div>
             <div className="hero-stat">
               <strong>1</strong>
-              <span>gestión centralizada</span>
+              <span>validación comercial</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="feature-strip" aria-label="Beneficios principales">
+      <section className="home-section-heading">
+        <p className="eyebrow">Cómo ayuda a tu comercio</p>
+        <h2>Promociones simples, más visibilidad y señales claras para decidir.</h2>
+      </section>
+
+      <section className="feature-strip" aria-label="Cómo ayuda a tu comercio">
         <article className="feature">
-          <h2>Descubrimiento local</h2>
+          <h2>Crea promociones atractivas</h2>
           <p>
-            Listados claros para encontrar comercios por categoría, ubicación y
-            actividad.
+            Convierte una oferta sencilla en una razón concreta para visitar tu tienda
+            esta semana.
           </p>
         </article>
         <article className="feature">
-          <h2>Ofertas vivas</h2>
+          <h2>Llega a vecinos de tu zona</h2>
           <p>
-            Promociones con fecha fin y código visible para activar campañas de barrio
-            sin complejidad.
+            Da más visibilidad a tu comercio entre personas cercanas que ya compran en
+            el barrio.
           </p>
         </article>
         <article className="feature">
-          <h2>Cupones medibles</h2>
+          <h2>Mide el interés generado</h2>
           <p>
-            Base preparada para contar usos por código o QR cuando conectemos Supabase
-            en el siguiente bloque.
+            Usa códigos y cupones para saber qué mensajes funcionan y qué promociones
+            merecen repetirse.
           </p>
         </article>
+      </section>
+
+      <section className="growth-section">
+        <div>
+          <p className="eyebrow">Estrategia MVP</p>
+          <h2>Pensado para empezar comercio por comercio y escalar a asociaciones.</h2>
+        </div>
+        <p>
+          Primero validamos con negocios individuales: una promoción, una ficha clara y
+          una forma simple de medir respuesta. Cuando el formato demuestre valor, la
+          misma base puede agrupar campañas por asociación, zona o categoría sin cambiar
+          la experiencia principal.
+        </p>
       </section>
     </div>
   );

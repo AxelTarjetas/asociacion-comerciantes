@@ -24,7 +24,11 @@ export function OfferCard({ offer, showMerchant = true }: OfferCardProps) {
         <h2>
           <Link href={`/ofertas/${offer.slug}`}>{offer.title}</Link>
         </h2>
+        <p className="offer-highlight">{offer.featuredPromotion}</p>
         <p>{offer.description}</p>
+        <p>
+          <strong>Cliente:</strong> {offer.customerBenefit}
+        </p>
         <span className="code-badge">{offer.couponCode}</span>
         <div className="card-footer">
           <span>Hasta el {formatDate(offer.endsAt)}</span>

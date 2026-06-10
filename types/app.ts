@@ -21,6 +21,9 @@ export type Offer = {
   merchantId: string;
   title: string;
   description: string;
+  featuredPromotion: string;
+  customerBenefit: string;
+  businessGoal: string;
   endsAt: string;
   couponCode: string;
   isActive: boolean;

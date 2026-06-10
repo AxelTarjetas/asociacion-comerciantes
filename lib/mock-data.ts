@@ -71,6 +71,9 @@ export const offers: Offer[] = [
     title: "Desayuno local con 15% de descuento",
     description:
       "Café, tostada o pieza dulce con descuento directo mostrando el cupón en mostrador.",
+    featuredPromotion: "15% en desayunos de barrio",
+    customerBenefit: "Ahorrar en el desayuno diario y descubrir un obrador cercano.",
+    businessGoal: "Aumentar visitas por la mañana y convertir vecinos en clientes recurrentes.",
     endsAt: "2026-07-15",
     couponCode: "PLAZA15",
     isActive: true
@@ -82,6 +85,9 @@ export const offers: Offer[] = [
     title: "Segunda barra a mitad de precio",
     description:
       "Oferta para compras de pan del día. Válida de lunes a jueves hasta fin de existencias.",
+    featuredPromotion: "Segunda barra al 50%",
+    customerBenefit: "Llevar más pan fresco pagando menos en compras entre semana.",
+    businessGoal: "Impulsar ventas en días de menor afluencia y medir la respuesta por código.",
     endsAt: "2026-06-30",
     couponCode: "PAN2X50",
     isActive: true
@@ -93,6 +99,9 @@ export const offers: Offer[] = [
     title: "5 euros en cesta de temporada",
     description:
       "Descuento aplicado en compras superiores a 30 euros en fruta, verdura y producto fresco.",
+    featuredPromotion: "5 euros de ahorro directo",
+    customerBenefit: "Comprar producto fresco de proximidad con descuento inmediato.",
+    businessGoal: "Incrementar el ticket medio y atraer clientes que hacen compra semanal.",
     endsAt: "2026-08-01",
     couponCode: "VERDE5",
     isActive: true
@@ -101,9 +110,12 @@ export const offers: Offer[] = [
     id: "off-04",
     slug: "arreglo-basico-gratis",
     merchantId: "mer-03",
-    title: "Arreglo basico incluido",
+    title: "Arreglo básico incluido",
     description:
       "Incluye bajo sencillo o ajuste menor al comprar una prenda de nueva temporada.",
+    featuredPromotion: "Arreglo básico sin coste",
+    customerBenefit: "Salir con una prenda lista para usar y adaptada desde el primer día.",
+    businessGoal: "Diferenciar la boutique frente a grandes cadenas y mejorar la conversión.",
     endsAt: "2026-07-05",
     couponCode: "ATELIERFIT",
     isActive: true
@@ -115,6 +127,9 @@ export const offers: Offer[] = [
     title: "Revisión urbana por 19 euros",
     description:
       "Chequeo de frenos, ruedas y cambios para bicicletas urbanas. Cita previa recomendada.",
+    featuredPromotion: "Revisión rápida por precio cerrado",
+    customerBenefit: "Circular con más seguridad sin esperar a una avería grande.",
+    businessGoal: "Generar nuevas citas de taller y activar servicios recurrentes.",
     endsAt: "2026-07-20",
     couponCode: "RIVERA19",
     isActive: true

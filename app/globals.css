@@ -213,6 +213,18 @@ img {
   padding: 34px 0 12px;
 }
 
+.home-section-heading {
+  border-top: 1px solid var(--line);
+  padding-top: 42px;
+}
+
+.home-section-heading h2 {
+  margin: 0;
+  max-width: 760px;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 1.04;
+}
+
 .feature {
   border-top: 2px solid var(--primary);
   padding-top: 16px;
@@ -229,6 +241,28 @@ img {
 .feature p {
   color: var(--muted);
   line-height: 1.65;
+}
+
+.growth-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 28px;
+  align-items: start;
+  border-top: 1px solid var(--line);
+  padding: 42px 0 58px;
+}
+
+.growth-section h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 1.04;
+}
+
+.growth-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.75;
 }
 
 .page-heading {
@@ -294,6 +328,17 @@ img {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
+}
+
+.card p strong {
+  color: var(--ink);
+}
+
+.offer-highlight {
+  border-left: 3px solid var(--primary);
+  padding-left: 10px;
+  color: var(--primary-dark) !important;
+  font-weight: 800;
 }
 
 .card-footer {
@@ -385,6 +430,14 @@ img {
   padding-bottom: 0;
 }
 
+.section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
 .empty-state {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -415,8 +468,14 @@ img {
   }
 
   .feature-strip,
+  .growth-section,
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .section-heading-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .card-body {

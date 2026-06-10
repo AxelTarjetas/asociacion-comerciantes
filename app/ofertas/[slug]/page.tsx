@@ -33,6 +33,7 @@ export default async function OfferDetailPage({ params }: OfferDetailPageProps) 
             </p>
             <h1>{offer.title}</h1>
             <p className="detail-copy">{offer.description}</p>
+            <p className="offer-highlight">{offer.featuredPromotion}</p>
             <div className="section-actions">
               <Button href={`/comercios/${offer.merchant.slug}`}>
                 Ver comercio
@@ -48,16 +49,24 @@ export default async function OfferDetailPage({ params }: OfferDetailPageProps) 
           <h2>Cupón</h2>
           <ul className="detail-list">
             <li>
+              <strong>Qué gana el cliente</strong>
+              {offer.customerBenefit}
+            </li>
+            <li>
               <strong>Código</strong>
               <span className="code-badge">{offer.couponCode}</span>
             </li>
             <li>
-              <strong>Valido hasta</strong>
+              <strong>Activa hasta</strong>
               {formatDate(offer.endsAt)}
             </li>
             <li>
               <strong>Comercio</strong>
               {offer.merchant.name}
+            </li>
+            <li>
+              <strong>Objetivo comercial</strong>
+              {offer.businessGoal}
             </li>
             <li>
               <strong>Dirección</strong>

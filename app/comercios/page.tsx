@@ -7,11 +7,11 @@ export default function MerchantsPage() {
   return (
     <div className="page-shell">
       <section className="page-heading">
-        <p className="eyebrow">Comercios asociados</p>
-        <h1>Negocios locales para descubrir cerca de ti.</h1>
+        <p className="eyebrow">Comercios locales</p>
+        <h1>Negocios con promociones activas para captar clientes de proximidad.</h1>
         <p>
-          Una primera guía pública con comercios activos, categorías útiles y datos
-          basicos de contacto.
+          Una primera guía pública para dar visibilidad a cada comercio y conectar sus
+          ofertas con vecinos de la zona.
         </p>
         <div className="toolbar" aria-label="Categorias disponibles">
           {categories.map((category) => (

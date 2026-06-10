@@ -7,11 +7,11 @@ export default function OffersPage() {
   return (
     <div className="page-shell">
       <section className="page-heading">
-        <p className="eyebrow">Ofertas activas</p>
-        <h1>Cupones simples para comprar en comercios del barrio.</h1>
+        <p className="eyebrow">Promociones exclusivas</p>
+        <h1>Ofertas pensadas para atraer clientes a comercios locales.</h1>
         <p>
-          Promociones con código visible, comercio asociado y fecha fin para poder
-          medir su uso en proximas fases.
+          Cada cupón muestra el beneficio para el cliente, el comercio asociado y la
+          fecha límite para poder medir el interés generado.
         </p>
       </section>
 

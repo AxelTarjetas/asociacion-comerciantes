@@ -29,7 +29,7 @@ export default async function MerchantDetailPage({ params }: MerchantDetailPageP
             <h1>{merchant.name}</h1>
             <p className="detail-copy">{merchant.description}</p>
             <div className="section-actions">
-              <Button href="/ofertas">Ver ofertas activas</Button>
+              <Button href="#promociones">Ver promociones activas</Button>
               <Button href="/comercios" variant="secondary">
                 Volver a comercios
               </Button>
@@ -45,19 +45,24 @@ export default async function MerchantDetailPage({ params }: MerchantDetailPageP
               {merchant.address}
             </li>
             <li>
-              <strong>Telefono</strong>
+              <strong>Teléfono</strong>
               {merchant.phone}
             </li>
             <li>
-              <strong>Ofertas activas</strong>
+              <strong>Promociones activas</strong>
               {offers.length}
             </li>
           </ul>
         </aside>
       </section>
 
-      <section className="related-section" aria-label="Ofertas del comercio">
-        <h2 className="section-title">Ofertas de {merchant.name}</h2>
+      <section id="promociones" className="related-section" aria-label="Promociones del comercio">
+        <div className="section-heading-row">
+          <h2 className="section-title">Promociones activas de {merchant.name}</h2>
+          <Button href="/ofertas" variant="secondary">
+            Ver todas las ofertas
+          </Button>
+        </div>
         {offers.length > 0 ? (
           <div className="grid">
             {offers.map((offer) => (
