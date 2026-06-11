@@ -25,9 +25,11 @@ export type Offer = {
   featuredPromotion: string;
   customerBenefit: string;
   businessGoal: string;
+  startsAt?: string;
   endsAt: string;
   couponCode: string;
   qrToken?: string;
+  maxRedemptions?: number;
   isActive: boolean;
 };
 

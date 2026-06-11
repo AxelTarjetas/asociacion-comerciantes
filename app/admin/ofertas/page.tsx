@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
@@ -86,7 +87,9 @@ export default async function AdminOffersPage() {
         {offers.map((offer) => (
           <div className="admin-table-row" key={offer.id}>
             <span>
-              <strong>{offer.title}</strong>
+              <strong>
+                <Link href={`/admin/ofertas/${offer.slug}`}>{offer.title}</Link>
+              </strong>
               <small>{offer.businessGoal}</small>
             </span>
             <span>{offer.merchant.name}</span>

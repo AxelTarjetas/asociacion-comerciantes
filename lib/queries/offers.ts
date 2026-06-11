@@ -31,7 +31,9 @@ type OfferRow = {
   business_goal: string | null;
   coupon_code: string | null;
   qr_token: string | null;
+  starts_at: string | null;
   ends_at: string | null;
+  max_redemptions: number | null;
   is_active: boolean;
   merchants: OfferMerchantRow | null;
 };
@@ -47,7 +49,9 @@ const offerSelect = `
   business_goal,
   coupon_code,
   qr_token,
+  starts_at,
   ends_at,
+  max_redemptions,
   is_active,
   merchants (
     id,
@@ -91,9 +95,11 @@ function mapOffer(row: OfferRow): OfferWithMerchant {
     featuredPromotion: row.featured_promotion ?? "",
     customerBenefit: row.customer_benefit ?? "",
     businessGoal: row.business_goal ?? "",
+    startsAt: row.starts_at ?? undefined,
     endsAt: row.ends_at ?? new Date().toISOString(),
     couponCode: row.coupon_code ?? "",
     qrToken: row.qr_token ?? undefined,
+    maxRedemptions: row.max_redemptions ?? undefined,
     isActive: row.is_active,
     merchant: {
       id: row.merchants.id,
@@ -168,6 +174,42 @@ export async function getAdminOffers(): Promise<OfferWithMerchant[]> {
   } catch (mappingError) {
     console.warn("Could not map admin offers from Supabase:", mappingError);
     return getMockOffers();
+  }
+}
+
+export async function getAdminOfferBySlug(
+  slug: string
+): Promise<OfferWithMerchant | undefined> {
+  if (!isLocalAdminEnabled()) {
+    console.warn("Local admin is disabled. Using mock offer detail.");
+    return getMockOfferBySlug(slug);
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase admin is not configured. Using mock offer detail for local admin."
+    );
+    return getMockOfferBySlug(slug);
+  }
+
+  const { data, error } = await supabase
+    .from("offers")
+    .select(offerSelect)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(`Could not load admin offer from Supabase: ${error.message}`);
+    return getMockOfferBySlug(slug);
+  }
+
+  try {
+    return data ? mapOffer(data as unknown as OfferRow) : undefined;
+  } catch (mappingError) {
+    console.warn("Could not map admin offer from Supabase:", mappingError);
+    return getMockOfferBySlug(slug);
   }
 }
 
