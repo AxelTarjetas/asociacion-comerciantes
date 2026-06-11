@@ -10,6 +10,13 @@ export default async function AdminRedemptionsPage() {
   }
 
   const redemptions = await getCouponRedemptions();
+  const merchantsWithRedemptions = new Set(
+    redemptions.map((redemption) => redemption.merchantId)
+  ).size;
+  const offersWithRedemptions = new Set(
+    redemptions.map((redemption) => redemption.offerId)
+  ).size;
+  const latestRedemption = redemptions[0];
 
   return (
     <div className="page-shell">
@@ -24,22 +31,51 @@ export default async function AdminRedemptionsPage() {
         </Button>
       </section>
 
-      <section className="admin-table" aria-label="Listado admin de canjes">
+      <section className="admin-stats" aria-label="Resumen de canjes">
+        <article className="admin-stat">
+          <span>Total de canjes</span>
+          <strong>{redemptions.length}</strong>
+        </article>
+        <article className="admin-stat">
+          <span>Comercios con canjes</span>
+          <strong>{merchantsWithRedemptions}</strong>
+        </article>
+        <article className="admin-stat">
+          <span>Ofertas con canjes</span>
+          <strong>{offersWithRedemptions}</strong>
+        </article>
+        <article className="admin-stat">
+          <span>Último canje</span>
+          <strong>
+            {latestRedemption ? formatDate(latestRedemption.redeemedAt) : "Sin datos"}
+          </strong>
+        </article>
+      </section>
+
+      <section
+        className="admin-table admin-redemptions-table"
+        aria-label="Listado admin de canjes"
+      >
         <div className="admin-table-row admin-table-head">
           <span>Oferta</span>
           <span>Comercio</span>
           <span>Código</span>
           <span>Fecha</span>
+          <span>Notas</span>
         </div>
         {redemptions.map((redemption) => (
           <div className="admin-table-row" key={redemption.id}>
             <span>
               <strong>{redemption.offerTitle}</strong>
-              <small>{redemption.notes ?? "Sin notas"}</small>
+              <small>{redemption.offerSlug || "Sin slug de oferta"}</small>
             </span>
-            <span>{redemption.merchantName}</span>
+            <span>
+              <strong>{redemption.merchantName}</strong>
+              <small>{redemption.merchantSlug || "Sin slug de comercio"}</small>
+            </span>
             <span className="code-badge">{redemption.couponCode}</span>
             <span>{formatDate(redemption.redeemedAt)}</span>
+            <span>{redemption.notes ?? "Sin notas"}</span>
           </div>
         ))}
         {redemptions.length === 0 ? (

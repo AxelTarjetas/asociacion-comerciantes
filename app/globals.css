@@ -547,6 +547,12 @@ img {
   line-height: 1.35;
 }
 
+.admin-redemptions-table .admin-table-row {
+  grid-template-columns:
+    minmax(200px, 1.25fr) minmax(160px, 1fr) minmax(120px, 0.65fr)
+    minmax(140px, 0.8fr) minmax(160px, 1fr);
+}
+
 .admin-table-head {
   background: var(--surface-muted);
   color: var(--ink);
@@ -637,6 +643,10 @@ img {
   }
 
   .admin-table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-redemptions-table .admin-table-row {
     grid-template-columns: 1fr;
   }
 
