@@ -19,9 +19,12 @@ export default async function AdminOffersPage() {
           <h1>Ofertas activas</h1>
           <p>Listado de solo lectura para revisar campañas, códigos y comercios.</p>
         </div>
-        <Button href="/admin" variant="secondary">
-          Volver al admin
-        </Button>
+        <div className="admin-heading-actions">
+          <Button href="/admin/ofertas/nueva">Nueva oferta</Button>
+          <Button href="/admin" variant="secondary">
+            Volver al admin
+          </Button>
+        </div>
       </section>
 
       <section className="admin-table" aria-label="Listado admin de ofertas">
