@@ -28,6 +28,31 @@ function redirectWithError(error: string): never {
   redirect(`/admin/comercios/nuevo?error=${error}`);
 }
 
+async function findAvailableMerchantSlug(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  baseSlug: string
+) {
+  for (let attempt = 1; attempt <= 50; attempt += 1) {
+    const candidate = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
+    const { data, error } = await supabase
+      .from("merchants")
+      .select("id")
+      .eq("slug", candidate)
+      .maybeSingle();
+
+    if (error) {
+      console.warn(`Could not check merchant slug availability: ${error.message}`);
+      return null;
+    }
+
+    if (!data) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 type AdminCategoriesResult =
   | {
       categories: Category[];
@@ -81,9 +106,9 @@ export async function createMerchantAction(formData: FormData) {
 
   const name = getString(formData, "name");
   const categoryId = getString(formData, "category_id");
-  const slug = createSlug(name);
+  const baseSlug = createSlug(name);
 
-  if (!name || !categoryId || !slug) {
+  if (!name || !categoryId || !baseSlug) {
     redirectWithError("missing-required-fields");
   }
 
@@ -91,6 +116,12 @@ export async function createMerchantAction(formData: FormData) {
 
   if (!supabase) {
     redirectWithError("supabase-not-configured");
+  }
+
+  const slug = await findAvailableMerchantSlug(supabase, baseSlug);
+
+  if (!slug) {
+    redirectWithError("slug-unavailable");
   }
 
   const { error } = await supabase.from("merchants").insert({

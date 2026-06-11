@@ -17,6 +17,8 @@ const errorMessages: Record<string, string> = {
   "invalid-dates": "La fecha fin debe ser posterior a la fecha de inicio.",
   "supabase-not-configured":
     "Supabase admin no está configurado. Revisa NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.",
+  "slug-unavailable":
+    "No se pudo generar un slug o QR disponible para esta oferta. Prueba con un título más específico.",
   "create-failed":
     "No se pudo crear la oferta. Revisa que el slug o QR no existan ya y que el comercio sea válido."
 };

@@ -58,6 +58,35 @@ function redirectWithError(error: string): never {
   redirect(`/admin/ofertas/nueva?error=${error}`);
 }
 
+async function findAvailableOfferIdentity(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  baseSlug: string
+) {
+  for (let attempt = 1; attempt <= 50; attempt += 1) {
+    const slug = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
+    const qrToken = `qr-${slug}`;
+    const { data, error } = await supabase
+      .from("offers")
+      .select("id")
+      .or(`slug.eq.${slug},qr_token.eq.${qrToken}`)
+      .limit(1);
+
+    if (error) {
+      console.warn(`Could not check offer slug availability: ${error.message}`);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      return {
+        slug,
+        qrToken
+      };
+    }
+  }
+
+  return null;
+}
+
 export async function getAdminMerchants(): Promise<AdminMerchantsResult> {
   if (!isLocalAdminEnabled()) {
     return {
@@ -102,10 +131,10 @@ export async function createOfferAction(formData: FormData) {
 
   const merchantId = getString(formData, "merchant_id");
   const title = getString(formData, "title");
-  const slug = createSlug(title);
+  const baseSlug = createSlug(title);
   const couponCode = getString(formData, "coupon_code").toUpperCase();
 
-  if (!merchantId || !title || !slug || !couponCode) {
+  if (!merchantId || !title || !baseSlug || !couponCode) {
     redirectWithError("missing-required-fields");
   }
 
@@ -122,16 +151,22 @@ export async function createOfferAction(formData: FormData) {
     redirectWithError("supabase-not-configured");
   }
 
+  const offerIdentity = await findAvailableOfferIdentity(supabase, baseSlug);
+
+  if (!offerIdentity) {
+    redirectWithError("slug-unavailable");
+  }
+
   const { error } = await supabase.from("offers").insert({
     merchant_id: merchantId,
     title,
-    slug,
+    slug: offerIdentity.slug,
     description: optionalString(formData, "description"),
     featured_promotion: optionalString(formData, "featured_promotion"),
     customer_benefit: optionalString(formData, "customer_benefit"),
     business_goal: optionalString(formData, "business_goal"),
     coupon_code: couponCode,
-    qr_token: `qr-${slug}`,
+    qr_token: offerIdentity.qrToken,
     starts_at: startsAt,
     ends_at: endsAt,
     max_redemptions: optionalNumber(formData, "max_redemptions"),

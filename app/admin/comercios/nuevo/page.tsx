@@ -16,6 +16,8 @@ const errorMessages: Record<string, string> = {
   "missing-required-fields": "Faltan datos obligatorios: nombre y categoría.",
   "supabase-not-configured":
     "Supabase admin no está configurado. Revisa NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.",
+  "slug-unavailable":
+    "No se pudo generar un slug disponible para este comercio. Prueba con un nombre más específico.",
   "create-failed":
     "No se pudo crear el comercio. Revisa que el slug no exista y que la categoría sea válida."
 };
