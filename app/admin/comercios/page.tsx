@@ -51,7 +51,15 @@ export default async function AdminMerchantsPage() {
             <span>{merchant.category.name}</span>
             <span>{merchant.phone || "Sin teléfono"}</span>
             <span>{merchant.address || "Sin dirección"}</span>
-            <span>{merchant.isActive === false ? "Inactivo" : "Activo"}</span>
+            <span
+              className={
+                merchant.isActive === false
+                  ? "status-badge status-badge-inactive"
+                  : "status-badge status-badge-active"
+              }
+            >
+              {merchant.isActive === false ? "Inactivo" : "Activo"}
+            </span>
           </div>
         ))}
       </section>

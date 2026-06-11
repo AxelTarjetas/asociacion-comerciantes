@@ -138,6 +138,39 @@ export async function getOffers(): Promise<OfferWithMerchant[]> {
   }
 }
 
+export async function getAdminOffers(): Promise<OfferWithMerchant[]> {
+  if (!isLocalAdminEnabled()) {
+    console.warn("Local admin is disabled. Using mock offers.");
+    return getMockOffers();
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase admin is not configured. Using mock offers for local admin."
+    );
+    return getMockOffers();
+  }
+
+  const { data, error } = await supabase
+    .from("offers")
+    .select(offerSelect)
+    .order("ends_at", { ascending: true });
+
+  if (error) {
+    console.warn(`Could not load admin offers from Supabase: ${error.message}`);
+    return getMockOffers();
+  }
+
+  try {
+    return ((data ?? []) as unknown as OfferRow[]).map(mapOffer);
+  } catch (mappingError) {
+    console.warn("Could not map admin offers from Supabase:", mappingError);
+    return getMockOffers();
+  }
+}
+
 export async function getOfferBySlug(
   slug: string
 ): Promise<OfferWithMerchant | undefined> {

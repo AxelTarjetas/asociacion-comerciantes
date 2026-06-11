@@ -119,7 +119,15 @@ export default async function AdminMerchantDetailPage({
             <span className="code-badge">{offer.couponCode}</span>
             <span>{formatDate(offer.endsAt)}</span>
             <span>{redemptionsByOffer[offer.id] ?? 0}</span>
-            <span>{offer.isActive ? "Activa" : "Inactiva"}</span>
+            <span
+              className={
+                offer.isActive
+                  ? "status-badge status-badge-active"
+                  : "status-badge status-badge-inactive"
+              }
+            >
+              {offer.isActive ? "Activa" : "Inactiva"}
+            </span>
           </div>
         ))}
         {offers.length === 0 ? (

@@ -364,6 +364,37 @@ img {
   font-weight: 800;
 }
 
+.status-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status-badge-active {
+  border-color: #a8d7b5;
+  background: #eef9f1;
+  color: #1f6b37;
+}
+
+.status-badge-inactive {
+  border-color: #f1b9a8;
+  background: #fff0eb;
+  color: #8a2d18;
+}
+
+.status-badge-muted {
+  border-color: var(--line);
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -615,6 +646,12 @@ img {
     minmax(140px, 0.8fr) minmax(90px, 0.45fr);
 }
 
+.admin-offers-dashboard-table .admin-table-row {
+  grid-template-columns:
+    minmax(220px, 1.25fr) minmax(150px, 0.8fr) minmax(110px, 0.65fr)
+    minmax(130px, 0.75fr) minmax(80px, 0.4fr) minmax(90px, 0.45fr);
+}
+
 .admin-merchants-table .admin-table-row {
   grid-template-columns:
     minmax(220px, 1.25fr) minmax(140px, 0.8fr) minmax(120px, 0.75fr)
@@ -731,6 +768,10 @@ img {
   }
 
   .admin-offers-table .admin-table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-offers-dashboard-table .admin-table-row {
     grid-template-columns: 1fr;
   }
 
