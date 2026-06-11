@@ -2,6 +2,8 @@ import {
   getMerchantBySlug as getMockMerchantBySlug,
   getMerchants as getMockMerchants
 } from "@/lib/mock-data";
+import { isLocalAdminEnabled } from "@/lib/admin";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Category, MerchantWithCategory } from "@/types/app";
 
@@ -42,6 +44,22 @@ function mapMerchant(row: MerchantRow): MerchantWithCategory {
   };
 }
 
+const merchantSelect = `
+  id,
+  name,
+  slug,
+  description,
+  address,
+  phone,
+  image_url,
+  category_id,
+  categories (
+    id,
+    name,
+    slug
+  )
+`;
+
 export async function getMerchants(): Promise<MerchantWithCategory[]> {
   const supabase = createSupabaseServerClient();
 
@@ -51,23 +69,7 @@ export async function getMerchants(): Promise<MerchantWithCategory[]> {
 
   const { data, error } = await supabase
     .from("merchants")
-    .select(
-      `
-        id,
-        name,
-        slug,
-        description,
-        address,
-        phone,
-        image_url,
-        category_id,
-        categories (
-          id,
-          name,
-          slug
-        )
-      `
-    )
+    .select(merchantSelect)
     .eq("is_active", true)
     .order("name", { ascending: true });
 
@@ -95,23 +97,7 @@ export async function getMerchantBySlug(
 
   const { data, error } = await supabase
     .from("merchants")
-    .select(
-      `
-        id,
-        name,
-        slug,
-        description,
-        address,
-        phone,
-        image_url,
-        category_id,
-        categories (
-          id,
-          name,
-          slug
-        )
-      `
-    )
+    .select(merchantSelect)
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
@@ -125,6 +111,42 @@ export async function getMerchantBySlug(
     return data ? mapMerchant(data as unknown as MerchantRow) : undefined;
   } catch (mappingError) {
     console.warn("Could not map merchant from Supabase:", mappingError);
+    return getMockMerchantBySlug(slug);
+  }
+}
+
+export async function getAdminMerchantBySlug(
+  slug: string
+): Promise<MerchantWithCategory | undefined> {
+  if (!isLocalAdminEnabled()) {
+    console.warn("Local admin is disabled. Using mock merchant detail.");
+    return getMockMerchantBySlug(slug);
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase admin is not configured. Using mock merchant detail for local admin."
+    );
+    return getMockMerchantBySlug(slug);
+  }
+
+  const { data, error } = await supabase
+    .from("merchants")
+    .select(merchantSelect)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(`Could not load admin merchant from Supabase: ${error.message}`);
+    return getMockMerchantBySlug(slug);
+  }
+
+  try {
+    return data ? mapMerchant(data as unknown as MerchantRow) : undefined;
+  } catch (mappingError) {
+    console.warn("Could not map admin merchant from Supabase:", mappingError);
     return getMockMerchantBySlug(slug);
   }
 }

@@ -3,6 +3,8 @@ import {
   getOffers as getMockOffers,
   getOffersByMerchantId as getMockOffersByMerchantId
 } from "@/lib/mock-data";
+import { isLocalAdminEnabled } from "@/lib/admin";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Category, OfferWithMerchant } from "@/types/app";
 
@@ -196,6 +198,42 @@ export async function getOffersByMerchantId(
     return ((data ?? []) as unknown as OfferRow[]).map(mapOffer);
   } catch (mappingError) {
     console.warn("Could not map merchant offers from Supabase:", mappingError);
+    return getMockOffersByMerchantId(merchantId);
+  }
+}
+
+export async function getAdminOffersByMerchantId(
+  merchantId: string
+): Promise<OfferWithMerchant[]> {
+  if (!isLocalAdminEnabled()) {
+    console.warn("Local admin is disabled. Using mock merchant offers.");
+    return getMockOffersByMerchantId(merchantId);
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase admin is not configured. Using mock merchant offers for local admin."
+    );
+    return getMockOffersByMerchantId(merchantId);
+  }
+
+  const { data, error } = await supabase
+    .from("offers")
+    .select(offerSelect)
+    .eq("merchant_id", merchantId)
+    .order("ends_at", { ascending: true });
+
+  if (error) {
+    console.warn(`Could not load admin merchant offers from Supabase: ${error.message}`);
+    return getMockOffersByMerchantId(merchantId);
+  }
+
+  try {
+    return ((data ?? []) as unknown as OfferRow[]).map(mapOffer);
+  } catch (mappingError) {
+    console.warn("Could not map admin merchant offers from Supabase:", mappingError);
     return getMockOffersByMerchantId(merchantId);
   }
 }

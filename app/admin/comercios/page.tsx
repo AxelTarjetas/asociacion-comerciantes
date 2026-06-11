@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { getMerchants } from "@/lib/queries/merchants";
@@ -36,7 +37,11 @@ export default async function AdminMerchantsPage() {
         {merchants.map((merchant) => (
           <div className="admin-table-row" key={merchant.id}>
             <span>
-              <strong>{merchant.name}</strong>
+              <strong>
+                <Link href={`/admin/comercios/${merchant.slug}`}>
+                  {merchant.name}
+                </Link>
+              </strong>
               <small>{merchant.slug}</small>
             </span>
             <span>{merchant.category.name}</span>

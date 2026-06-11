@@ -542,6 +542,31 @@ img {
   gap: 10px;
 }
 
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px 0 0;
+}
+
+.admin-detail-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 16px;
+}
+
+.admin-detail-item span {
+  display: block;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.admin-detail-item strong {
+  display: block;
+  margin-top: 8px;
+}
+
 .admin-heading-actions,
 .admin-form-actions {
   display: flex;
@@ -685,6 +710,10 @@ img {
 
   .admin-filter-actions {
     flex-wrap: wrap;
+  }
+
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
   }
 
   .admin-table-row {
