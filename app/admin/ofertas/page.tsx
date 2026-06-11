@@ -3,13 +3,38 @@ import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
 import { getOffers } from "@/lib/queries/offers";
+import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
 
 export default async function AdminOffersPage() {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
-  const offers = await getOffers();
+  const [offers, redemptions] = await Promise.all([
+    getOffers(),
+    getAdminCouponRedemptions()
+  ]);
+  const redemptionsByOffer = redemptions.reduce<Record<string, number>>(
+    (counts, redemption) => {
+      counts[redemption.offerId] = (counts[redemption.offerId] ?? 0) + 1;
+      return counts;
+    },
+    {}
+  );
+  const topOffer = offers.reduce<(typeof offers)[number] | null>(
+    (currentTop, offer) => {
+      if (!currentTop) {
+        return offer;
+      }
+
+      return (redemptionsByOffer[offer.id] ?? 0) >
+        (redemptionsByOffer[currentTop.id] ?? 0)
+        ? offer
+        : currentTop;
+    },
+    null
+  );
+  const topOfferRedemptions = topOffer ? (redemptionsByOffer[topOffer.id] ?? 0) : 0;
 
   return (
     <div className="page-shell">
@@ -27,12 +52,31 @@ export default async function AdminOffersPage() {
         </div>
       </section>
 
-      <section className="admin-table" aria-label="Listado admin de ofertas">
+      <section className="admin-stats" aria-label="Resumen de ofertas">
+        <article className="admin-stat">
+          <span>Ofertas activas</span>
+          <strong>{offers.length}</strong>
+        </article>
+        <article className="admin-stat">
+          <span>Total de canjes</span>
+          <strong>{redemptions.length}</strong>
+        </article>
+        <article className="admin-stat">
+          <span>Oferta con más canjes</span>
+          <strong>{topOfferRedemptions > 0 ? topOffer?.title : "Sin canjes"}</strong>
+        </article>
+      </section>
+
+      <section
+        className="admin-table admin-offers-table"
+        aria-label="Listado admin de ofertas"
+      >
         <div className="admin-table-row admin-table-head">
           <span>Oferta</span>
           <span>Comercio</span>
           <span>Código</span>
           <span>Activa hasta</span>
+          <span>Canjes</span>
         </div>
         {offers.map((offer) => (
           <div className="admin-table-row" key={offer.id}>
@@ -43,6 +87,7 @@ export default async function AdminOffersPage() {
             <span>{offer.merchant.name}</span>
             <span className="code-badge">{offer.couponCode}</span>
             <span>{formatDate(offer.endsAt)}</span>
+            <span>{redemptionsByOffer[offer.id] ?? 0}</span>
           </div>
         ))}
       </section>

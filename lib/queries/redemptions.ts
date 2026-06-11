@@ -1,4 +1,6 @@
 import { getCouponRedemptions as getMockCouponRedemptions } from "@/lib/mock-data";
+import { isLocalAdminEnabled } from "@/lib/admin";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CouponRedemption } from "@/types/app";
 
@@ -55,6 +57,24 @@ function mapRedemption(row: RedemptionRow): CouponRedemption {
   };
 }
 
+const redemptionSelect = `
+  id,
+  offer_id,
+  merchant_id,
+  coupon_code,
+  qr_token,
+  redeemed_at,
+  notes,
+  offers (
+    title,
+    slug
+  ),
+  merchants (
+    name,
+    slug
+  )
+`;
+
 export async function getCouponRedemptions(): Promise<CouponRedemption[]> {
   const supabase = createSupabaseServerClient();
 
@@ -64,25 +84,7 @@ export async function getCouponRedemptions(): Promise<CouponRedemption[]> {
 
   const { data, error } = await supabase
     .from("coupon_redemptions")
-    .select(
-      `
-        id,
-        offer_id,
-        merchant_id,
-        coupon_code,
-        qr_token,
-        redeemed_at,
-        notes,
-        offers (
-          title,
-          slug
-        ),
-        merchants (
-          name,
-          slug
-        )
-      `
-    )
+    .select(redemptionSelect)
     .order("redeemed_at", { ascending: false });
 
   if (error) {
@@ -94,6 +96,41 @@ export async function getCouponRedemptions(): Promise<CouponRedemption[]> {
     return ((data ?? []) as unknown as RedemptionRow[]).map(mapRedemption);
   } catch (mappingError) {
     console.warn("Could not map coupon redemptions from Supabase:", mappingError);
+    return getMockCouponRedemptions();
+  }
+}
+
+export async function getAdminCouponRedemptions(): Promise<CouponRedemption[]> {
+  if (!isLocalAdminEnabled()) {
+    console.warn("Local admin is disabled. Using mock coupon redemptions.");
+    return getMockCouponRedemptions();
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase admin is not configured. Using mock coupon redemptions for local admin."
+    );
+    return getMockCouponRedemptions();
+  }
+
+  const { data, error } = await supabase
+    .from("coupon_redemptions")
+    .select(redemptionSelect)
+    .order("redeemed_at", { ascending: false });
+
+  if (error) {
+    console.warn(
+      `Could not load admin coupon redemptions from Supabase: ${error.message}`
+    );
+    return getMockCouponRedemptions();
+  }
+
+  try {
+    return ((data ?? []) as unknown as RedemptionRow[]).map(mapRedemption);
+  } catch (mappingError) {
+    console.warn("Could not map admin coupon redemptions from Supabase:", mappingError);
     return getMockCouponRedemptions();
   }
 }

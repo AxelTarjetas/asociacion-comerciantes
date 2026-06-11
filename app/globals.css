@@ -553,6 +553,12 @@ img {
     minmax(140px, 0.8fr) minmax(160px, 1fr);
 }
 
+.admin-offers-table .admin-table-row {
+  grid-template-columns:
+    minmax(220px, 1.3fr) minmax(150px, 0.9fr) minmax(120px, 0.7fr)
+    minmax(140px, 0.8fr) minmax(90px, 0.45fr);
+}
+
 .admin-table-head {
   background: var(--surface-muted);
   color: var(--ink);
@@ -647,6 +653,10 @@ img {
   }
 
   .admin-redemptions-table .admin-table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-offers-table .admin-table-row {
     grid-template-columns: 1fr;
   }
 

@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
-import { getCouponRedemptions } from "@/lib/queries/redemptions";
+import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
 
 export default async function AdminRedemptionsPage() {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
-  const redemptions = await getCouponRedemptions();
+  const redemptions = await getAdminCouponRedemptions();
   const merchantsWithRedemptions = new Set(
     redemptions.map((redemption) => redemption.merchantId)
   ).size;
