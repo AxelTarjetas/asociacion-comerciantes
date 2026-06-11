@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { redeemOfferAction } from "@/app/ofertas/[slug]/actions";
 import { formatDate } from "@/lib/utils";
 import { getOfferBySlug } from "@/lib/queries/offers";
 
@@ -8,10 +9,27 @@ type OfferDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<{
+    redeemed?: string;
+    error?: string;
+  }>;
 };
 
-export default async function OfferDetailPage({ params }: OfferDetailPageProps) {
+const redeemErrorMessages: Record<string, string> = {
+  "offer-not-available": "Esta oferta no está disponible para canje.",
+  "redemption-limit-reached":
+    "Esta oferta ya ha alcanzado el límite de canjes.",
+  "redeem-failed": "No se pudo canjear el cupón. Inténtalo de nuevo.",
+  "supabase-not-configured":
+    "Supabase admin no está configurado. No se puede registrar el canje."
+};
+
+export default async function OfferDetailPage({
+  params,
+  searchParams
+}: OfferDetailPageProps) {
   const { slug } = await params;
+  const { redeemed, error } = searchParams ? await searchParams : {};
   const offer = await getOfferBySlug(slug);
 
   if (!offer) {
@@ -47,6 +65,14 @@ export default async function OfferDetailPage({ params }: OfferDetailPageProps) 
 
         <aside className="detail-panel">
           <h2>Cupón</h2>
+          {redeemed === "1" ? (
+            <p className="empty-state">Cupón canjeado correctamente.</p>
+          ) : null}
+          {error ? (
+            <p className="empty-state">
+              {redeemErrorMessages[error] ?? "No se pudo canjear el cupón."}
+            </p>
+          ) : null}
           <ul className="detail-list">
             <li>
               <strong>Qué gana el cliente</strong>
@@ -73,6 +99,12 @@ export default async function OfferDetailPage({ params }: OfferDetailPageProps) 
               {offer.merchant.address}
             </li>
           </ul>
+          <form action={redeemOfferAction} className="redeem-form">
+            <input name="offer_slug" type="hidden" value={offer.slug} />
+            <button className="button button-primary" type="submit">
+              Canjear cupón
+            </button>
+          </form>
         </aside>
       </section>
     </div>

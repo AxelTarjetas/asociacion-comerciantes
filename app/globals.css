@@ -446,6 +446,10 @@ img {
   color: var(--muted);
 }
 
+.redeem-form {
+  margin-top: 22px;
+}
+
 .admin-hero,
 .admin-page-heading {
   border-bottom: 1px solid var(--line);

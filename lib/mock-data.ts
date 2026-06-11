@@ -77,6 +77,7 @@ export const offers: Offer[] = [
     businessGoal: "Aumentar visitas por la mañana y convertir vecinos en clientes recurrentes.",
     endsAt: "2026-07-15",
     couponCode: "PLAZA15",
+    qrToken: "qr-desayuno-local-la-plaza",
     isActive: true
   },
   {
@@ -91,6 +92,7 @@ export const offers: Offer[] = [
     businessGoal: "Impulsar ventas en días de menor afluencia y medir la respuesta por código.",
     endsAt: "2026-06-30",
     couponCode: "PAN2X50",
+    qrToken: "qr-segunda-barra-mitad-precio",
     isActive: true
   },
   {
@@ -105,6 +107,7 @@ export const offers: Offer[] = [
     businessGoal: "Incrementar el ticket medio y atraer clientes que hacen compra semanal.",
     endsAt: "2026-08-01",
     couponCode: "VERDE5",
+    qrToken: "qr-cesta-temporada-mercado-verde",
     isActive: true
   },
   {
@@ -119,6 +122,7 @@ export const offers: Offer[] = [
     businessGoal: "Diferenciar la boutique frente a grandes cadenas y mejorar la conversión.",
     endsAt: "2026-07-05",
     couponCode: "ATELIERFIT",
+    qrToken: "qr-arreglo-basico-gratis",
     isActive: true
   },
   {
@@ -133,6 +137,7 @@ export const offers: Offer[] = [
     businessGoal: "Generar nuevas citas de taller y activar servicios recurrentes.",
     endsAt: "2026-07-20",
     couponCode: "RIVERA19",
+    qrToken: "qr-revision-urbana-bicis",
     isActive: true
   }
 ];

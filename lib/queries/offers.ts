@@ -28,6 +28,7 @@ type OfferRow = {
   customer_benefit: string | null;
   business_goal: string | null;
   coupon_code: string | null;
+  qr_token: string | null;
   ends_at: string | null;
   is_active: boolean;
   merchants: OfferMerchantRow | null;
@@ -43,6 +44,7 @@ const offerSelect = `
   customer_benefit,
   business_goal,
   coupon_code,
+  qr_token,
   ends_at,
   is_active,
   merchants (
@@ -89,6 +91,7 @@ function mapOffer(row: OfferRow): OfferWithMerchant {
     businessGoal: row.business_goal ?? "",
     endsAt: row.ends_at ?? new Date().toISOString(),
     couponCode: row.coupon_code ?? "",
+    qrToken: row.qr_token ?? undefined,
     isActive: row.is_active,
     merchant: {
       id: row.merchants.id,

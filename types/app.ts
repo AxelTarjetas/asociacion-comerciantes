@@ -26,6 +26,7 @@ export type Offer = {
   businessGoal: string;
   endsAt: string;
   couponCode: string;
+  qrToken?: string;
   isActive: boolean;
 };
 
