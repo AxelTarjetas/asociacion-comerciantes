@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
-import { getMerchants } from "@/lib/queries/merchants";
+import { getAdminMerchants } from "@/lib/queries/merchants";
 
 export default async function AdminMerchantsPage() {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
-  const merchants = await getMerchants();
+  const merchants = await getAdminMerchants();
 
   return (
     <div className="page-shell">
@@ -17,7 +17,7 @@ export default async function AdminMerchantsPage() {
         <div>
           <p className="eyebrow">Admin temporal local</p>
           <h1>Comercios</h1>
-          <p>Listado de solo lectura para revisar los comercios activos.</p>
+          <p>Listado de solo lectura para revisar comercios registrados.</p>
         </div>
         <div className="admin-heading-actions">
           <Button href="/admin/comercios/nuevo">Nuevo comercio</Button>
@@ -27,12 +27,16 @@ export default async function AdminMerchantsPage() {
         </div>
       </section>
 
-      <section className="admin-table" aria-label="Listado admin de comercios">
+      <section
+        className="admin-table admin-merchants-table"
+        aria-label="Listado admin de comercios"
+      >
         <div className="admin-table-row admin-table-head">
           <span>Comercio</span>
           <span>Categoría</span>
           <span>Teléfono</span>
           <span>Dirección</span>
+          <span>Estado</span>
         </div>
         {merchants.map((merchant) => (
           <div className="admin-table-row" key={merchant.id}>
@@ -47,6 +51,7 @@ export default async function AdminMerchantsPage() {
             <span>{merchant.category.name}</span>
             <span>{merchant.phone || "Sin teléfono"}</span>
             <span>{merchant.address || "Sin dirección"}</span>
+            <span>{merchant.isActive === false ? "Inactivo" : "Activo"}</span>
           </div>
         ))}
       </section>

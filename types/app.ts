@@ -13,6 +13,7 @@ export type Merchant = {
   address: string;
   phone: string;
   imageUrl?: string;
+  isActive?: boolean;
 };
 
 export type Offer = {

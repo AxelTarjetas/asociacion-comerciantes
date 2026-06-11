@@ -615,6 +615,12 @@ img {
     minmax(140px, 0.8fr) minmax(90px, 0.45fr);
 }
 
+.admin-merchants-table .admin-table-row {
+  grid-template-columns:
+    minmax(220px, 1.25fr) minmax(140px, 0.8fr) minmax(120px, 0.75fr)
+    minmax(180px, 1fr) minmax(90px, 0.45fr);
+}
+
 .admin-table-head {
   background: var(--surface-muted);
   color: var(--ink);
@@ -725,6 +731,10 @@ img {
   }
 
   .admin-offers-table .admin-table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-merchants-table .admin-table-row {
     grid-template-columns: 1fr;
   }
 

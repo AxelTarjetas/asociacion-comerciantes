@@ -15,6 +15,7 @@ type MerchantRow = {
   address: string | null;
   phone: string | null;
   image_url: string | null;
+  is_active: boolean | null;
   category_id: string;
   categories: Category | Category[] | null;
 };
@@ -40,6 +41,7 @@ function mapMerchant(row: MerchantRow): MerchantWithCategory {
     address: row.address ?? "",
     phone: row.phone ?? "",
     imageUrl: row.image_url ?? undefined,
+    isActive: row.is_active ?? true,
     category: category ?? fallbackCategory
   };
 }
@@ -52,6 +54,7 @@ const merchantSelect = `
   address,
   phone,
   image_url,
+  is_active,
   category_id,
   categories (
     id,
@@ -82,6 +85,39 @@ export async function getMerchants(): Promise<MerchantWithCategory[]> {
     return ((data ?? []) as unknown as MerchantRow[]).map(mapMerchant);
   } catch (mappingError) {
     console.warn("Could not map merchants from Supabase:", mappingError);
+    return getMockMerchants();
+  }
+}
+
+export async function getAdminMerchants(): Promise<MerchantWithCategory[]> {
+  if (!isLocalAdminEnabled()) {
+    console.warn("Local admin is disabled. Using mock merchants.");
+    return getMockMerchants();
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase admin is not configured. Using mock merchants for local admin."
+    );
+    return getMockMerchants();
+  }
+
+  const { data, error } = await supabase
+    .from("merchants")
+    .select(merchantSelect)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn(`Could not load admin merchants from Supabase: ${error.message}`);
+    return getMockMerchants();
+  }
+
+  try {
+    return ((data ?? []) as unknown as MerchantRow[]).map(mapMerchant);
+  } catch (mappingError) {
+    console.warn("Could not map admin merchants from Supabase:", mappingError);
     return getMockMerchants();
   }
 }
