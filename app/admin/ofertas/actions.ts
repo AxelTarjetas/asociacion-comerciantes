@@ -20,6 +20,20 @@ type AdminMerchantsResult =
       error: "admin-disabled" | "supabase-not-configured" | "merchants-load-failed";
     };
 
+type OriginalOfferRow = {
+  merchant_id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  featured_promotion: string | null;
+  customer_benefit: string | null;
+  business_goal: string | null;
+  coupon_code: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  max_redemptions: number | null;
+};
+
 function getString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
@@ -113,6 +127,39 @@ async function findAvailableOfferIdentity(
 
     if (error) {
       console.warn(`Could not check offer slug availability: ${error.message}`);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      return {
+        slug,
+        qrToken
+      };
+    }
+  }
+
+  return null;
+}
+
+async function findAvailableDuplicateOfferIdentity(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  originalSlug: string
+) {
+  const baseSlug = `${createSlug(originalSlug)}-copia`;
+
+  for (let attempt = 1; attempt <= 50; attempt += 1) {
+    const slug = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
+    const qrToken = `qr-${slug}`;
+    const { data, error } = await supabase
+      .from("offers")
+      .select("id")
+      .or(`slug.eq.${slug},qr_token.eq.${qrToken}`)
+      .limit(1);
+
+    if (error) {
+      console.warn(
+        `Could not check duplicate offer slug availability: ${error.message}`
+      );
       return null;
     }
 
@@ -328,4 +375,80 @@ export async function updateOfferAction(currentSlug: string, formData: FormData)
   }
 
   redirect(`/admin/ofertas/${slug}?updated=1`);
+}
+
+export async function duplicateOfferAction(originalSlug: string) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirect(`/admin/ofertas/${originalSlug}?error=supabase-not-configured`);
+  }
+
+  const { data: originalOffer, error: originalOfferError } = await supabase
+    .from("offers")
+    .select(
+      `
+        merchant_id,
+        title,
+        slug,
+        description,
+        featured_promotion,
+        customer_benefit,
+        business_goal,
+        coupon_code,
+        starts_at,
+        ends_at,
+        max_redemptions
+      `
+    )
+    .eq("slug", originalSlug)
+    .maybeSingle();
+
+  if (originalOfferError) {
+    console.warn(
+      `Could not load offer before duplication: ${originalOfferError.message}`
+    );
+    redirect(`/admin/ofertas/${originalSlug}?error=duplicate-failed`);
+  }
+
+  if (!originalOffer) {
+    notFound();
+  }
+
+  const sourceOffer = originalOffer as OriginalOfferRow;
+  const duplicateIdentity = await findAvailableDuplicateOfferIdentity(
+    supabase,
+    sourceOffer.slug
+  );
+
+  if (!duplicateIdentity) {
+    redirect(`/admin/ofertas/${originalSlug}?error=slug-unavailable`);
+  }
+
+  const { error } = await supabase.from("offers").insert({
+    merchant_id: sourceOffer.merchant_id,
+    title: `Copia de ${sourceOffer.title}`,
+    slug: duplicateIdentity.slug,
+    description: sourceOffer.description,
+    featured_promotion: sourceOffer.featured_promotion,
+    customer_benefit: sourceOffer.customer_benefit,
+    business_goal: sourceOffer.business_goal,
+    coupon_code: sourceOffer.coupon_code,
+    qr_token: duplicateIdentity.qrToken,
+    starts_at: sourceOffer.starts_at,
+    ends_at: sourceOffer.ends_at,
+    max_redemptions: sourceOffer.max_redemptions,
+    is_active: false
+  });
+
+  if (error) {
+    console.warn(`Could not duplicate offer from local admin: ${error.message}`);
+    redirect(`/admin/ofertas/${originalSlug}?error=duplicate-failed`);
+  }
+
+  redirect(`/admin/ofertas/${duplicateIdentity.slug}?duplicated=1`);
 }

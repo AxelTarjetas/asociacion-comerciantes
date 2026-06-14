@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
+import { duplicateOfferAction } from "@/app/admin/ofertas/actions";
 import { getAdminOfferBySlug } from "@/lib/queries/offers";
 import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
 
@@ -12,12 +13,22 @@ type AdminOfferDetailPageProps = {
   }>;
   searchParams?: Promise<{
     updated?: string;
+    duplicated?: string;
+    error?: string;
   }>;
 };
 
 function formatOptionalDate(date: string | undefined) {
   return date ? formatDate(date) : "Sin fecha";
 }
+
+const errorMessages: Record<string, string> = {
+  "supabase-not-configured":
+    "Supabase admin no esta configurado. No se puede duplicar la oferta.",
+  "slug-unavailable":
+    "No se pudo generar un slug o QR disponible para duplicar esta oferta.",
+  "duplicate-failed": "No se pudo duplicar la oferta. Revisa Supabase e intentalo de nuevo."
+};
 
 export default async function AdminOfferDetailPage({
   params,
@@ -29,7 +40,7 @@ export default async function AdminOfferDetailPage({
 
   const [{ slug }, queryParams] = await Promise.all([
     params,
-    searchParams ?? Promise.resolve<{ updated?: string }>({})
+    searchParams ?? Promise.resolve<{ updated?: string; duplicated?: string; error?: string }>({})
   ]);
   const offer = await getAdminOfferBySlug(slug);
 
@@ -42,6 +53,8 @@ export default async function AdminOfferDetailPage({
     (redemption) => redemption.offerId === offer.id
   );
   const latestRedemptions = offerRedemptions.slice(0, 5);
+  const duplicateOfferWithSlug = duplicateOfferAction.bind(null, offer.slug);
+  const errorMessage = queryParams.error ? errorMessages[queryParams.error] : null;
 
   return (
     <div className="page-shell">
@@ -55,6 +68,11 @@ export default async function AdminOfferDetailPage({
           <Button href={`/admin/ofertas/${offer.slug}/editar`}>
             Editar oferta
           </Button>
+          <form action={duplicateOfferWithSlug}>
+            <button className="button button-secondary" type="submit">
+              Duplicar oferta
+            </button>
+          </form>
           <Button href="/admin/ofertas" variant="secondary">
             Volver a ofertas
           </Button>
@@ -64,6 +82,12 @@ export default async function AdminOfferDetailPage({
       {queryParams.updated === "1" ? (
         <p className="admin-form-success">Oferta actualizada correctamente.</p>
       ) : null}
+      {queryParams.duplicated === "1" ? (
+        <p className="admin-form-success">
+          Oferta duplicada correctamente. Revisala antes de activarla.
+        </p>
+      ) : null}
+      {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
 
       <section className="admin-detail-grid" aria-label="Datos de la oferta">
         <article className="admin-detail-item">
