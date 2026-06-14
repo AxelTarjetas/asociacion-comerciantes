@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
-import { duplicateOfferAction } from "@/app/admin/ofertas/actions";
+import {
+  duplicateOfferAction,
+  setOfferActiveAction
+} from "@/app/admin/ofertas/actions";
 import { getAdminOfferBySlug } from "@/lib/queries/offers";
 import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
 
@@ -14,6 +17,7 @@ type AdminOfferDetailPageProps = {
   searchParams?: Promise<{
     updated?: string;
     duplicated?: string;
+    statusUpdated?: string;
     error?: string;
   }>;
 };
@@ -27,7 +31,9 @@ const errorMessages: Record<string, string> = {
     "Supabase admin no esta configurado. No se puede duplicar la oferta.",
   "slug-unavailable":
     "No se pudo generar un slug o QR disponible para duplicar esta oferta.",
-  "duplicate-failed": "No se pudo duplicar la oferta. Revisa Supabase e intentalo de nuevo."
+  "duplicate-failed": "No se pudo duplicar la oferta. Revisa Supabase e intentalo de nuevo.",
+  "status-update-failed":
+    "No se pudo actualizar el estado de la oferta. Revisa Supabase e intentalo de nuevo."
 };
 
 export default async function AdminOfferDetailPage({
@@ -40,7 +46,13 @@ export default async function AdminOfferDetailPage({
 
   const [{ slug }, queryParams] = await Promise.all([
     params,
-    searchParams ?? Promise.resolve<{ updated?: string; duplicated?: string; error?: string }>({})
+    searchParams ??
+      Promise.resolve<{
+        updated?: string;
+        duplicated?: string;
+        statusUpdated?: string;
+        error?: string;
+      }>({})
   ]);
   const offer = await getAdminOfferBySlug(slug);
 
@@ -54,6 +66,7 @@ export default async function AdminOfferDetailPage({
   );
   const latestRedemptions = offerRedemptions.slice(0, 5);
   const duplicateOfferWithSlug = duplicateOfferAction.bind(null, offer.slug);
+  const nextIsActive = !offer.isActive;
   const errorMessage = queryParams.error ? errorMessages[queryParams.error] : null;
 
   return (
@@ -73,6 +86,23 @@ export default async function AdminOfferDetailPage({
               Duplicar oferta
             </button>
           </form>
+          <form action={setOfferActiveAction}>
+            <input name="offer_id" type="hidden" value={offer.id} />
+            <input name="offer_slug" type="hidden" value={offer.slug} />
+            <input
+              name="is_active"
+              type="hidden"
+              value={nextIsActive ? "true" : "false"}
+            />
+            <input
+              name="return_to"
+              type="hidden"
+              value={`/admin/ofertas/${offer.slug}?statusUpdated=1`}
+            />
+            <button className="button button-secondary" type="submit">
+              {offer.isActive ? "Desactivar" : "Activar"}
+            </button>
+          </form>
           <Button href="/admin/ofertas" variant="secondary">
             Volver a ofertas
           </Button>
@@ -84,8 +114,11 @@ export default async function AdminOfferDetailPage({
       ) : null}
       {queryParams.duplicated === "1" ? (
         <p className="admin-form-success">
-          Oferta duplicada correctamente. Revisala antes de activarla.
+          Oferta duplicada correctamente. Revísala antes de activarla.
         </p>
+      ) : null}
+      {queryParams.statusUpdated === "1" ? (
+        <p className="admin-form-success">Estado de la oferta actualizado.</p>
       ) : null}
       {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
 

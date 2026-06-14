@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -110,6 +111,18 @@ function redirectWithError(error: string): never {
 
 function redirectEditWithError(slug: string, error: string): never {
   redirect(`/admin/ofertas/${slug}/editar?error=${error}`);
+}
+
+function getSafeOfferReturnPath(value: string, fallback: string) {
+  return value.startsWith("/admin/ofertas") ? value : fallback;
+}
+
+function appendQueryParam(path: string, key: string, value: string) {
+  const [pathname, query = ""] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set(key, value);
+
+  return `${pathname}?${params.toString()}`;
 }
 
 async function findAvailableOfferIdentity(
@@ -451,4 +464,48 @@ export async function duplicateOfferAction(originalSlug: string) {
   }
 
   redirect(`/admin/ofertas/${duplicateIdentity.slug}?duplicated=1`);
+}
+
+export async function setOfferActiveAction(formData: FormData) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const offerId = getString(formData, "offer_id");
+  const offerSlug = getString(formData, "offer_slug");
+  const isActive = getString(formData, "is_active");
+  const returnTo = getSafeOfferReturnPath(
+    getString(formData, "return_to"),
+    offerSlug ? `/admin/ofertas/${offerSlug}` : "/admin/ofertas"
+  );
+  const errorReturnTo = appendQueryParam(returnTo, "error", "status-update-failed");
+
+  if (!offerId || !offerSlug || (isActive !== "true" && isActive !== "false")) {
+    redirect(errorReturnTo);
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirect(appendQueryParam(returnTo, "error", "supabase-not-configured"));
+  }
+
+  const { error } = await supabase
+    .from("offers")
+    .update({
+      is_active: isActive === "true"
+    })
+    .eq("id", offerId);
+
+  if (error) {
+    console.warn(`Could not update offer status from local admin: ${error.message}`);
+    redirect(errorReturnTo);
+  }
+
+  revalidatePath("/admin/ofertas");
+  revalidatePath(`/admin/ofertas/${offerSlug}`);
+  revalidatePath("/ofertas");
+  revalidatePath(`/ofertas/${offerSlug}`);
+
+  redirect(returnTo);
 }

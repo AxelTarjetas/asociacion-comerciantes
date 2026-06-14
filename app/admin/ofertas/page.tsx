@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
+import { setOfferActiveAction } from "@/app/admin/ofertas/actions";
 import { getAdminOffers } from "@/lib/queries/offers";
 import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
 import type { OfferWithMerchant } from "@/types/app";
@@ -51,6 +52,25 @@ function getAdminOfferStatus(offer: OfferWithMerchant, now: Date): AdminOfferSta
   return "active";
 }
 
+function getAdminOffersReturnPath(filters: Awaited<NonNullable<AdminOffersPageProps["searchParams"]>>) {
+  const params = new URLSearchParams();
+
+  if (filters.q) {
+    params.set("q", filters.q);
+  }
+
+  if (filters.merchant) {
+    params.set("merchant", filters.merchant);
+  }
+
+  if (filters.status) {
+    params.set("status", filters.status);
+  }
+
+  const query = params.toString();
+  return query ? `/admin/ofertas?${query}` : "/admin/ofertas";
+}
+
 export default async function AdminOffersPage({
   searchParams
 }: AdminOffersPageProps) {
@@ -62,6 +82,7 @@ export default async function AdminOffersPage({
   const query = normalizeSearch(filters.q);
   const merchantFilter = filters.merchant?.trim() ?? "";
   const statusFilter = filters.status?.trim() ?? "all";
+  const returnPath = getAdminOffersReturnPath(filters);
   const now = new Date();
   const [offers, redemptions] = await Promise.all([
     getAdminOffers(),
@@ -207,9 +228,11 @@ export default async function AdminOffersPage({
           <span>Activa hasta</span>
           <span>Canjes</span>
           <span>Estado</span>
+          <span>AcciÃ³n</span>
         </div>
         {filteredOffers.map((offer) => {
           const offerStatus = getAdminOfferStatus(offer, now);
+          const nextIsActive = !offer.isActive;
 
           return (
             <div className="admin-table-row" key={offer.id}>
@@ -225,6 +248,21 @@ export default async function AdminOffersPage({
               <span>{redemptionsByOffer[offer.id] ?? 0}</span>
               <span className={statusClasses[offerStatus]}>
                 {statusLabels[offerStatus]}
+              </span>
+              <span>
+                <form action={setOfferActiveAction}>
+                  <input name="offer_id" type="hidden" value={offer.id} />
+                  <input name="offer_slug" type="hidden" value={offer.slug} />
+                  <input
+                    name="is_active"
+                    type="hidden"
+                    value={nextIsActive ? "true" : "false"}
+                  />
+                  <input name="return_to" type="hidden" value={returnPath} />
+                  <button className="button button-secondary" type="submit">
+                    {offer.isActive ? "Desactivar" : "Activar"}
+                  </button>
+                </form>
               </span>
             </div>
           );
