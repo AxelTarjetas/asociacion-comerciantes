@@ -658,6 +658,12 @@ img {
     minmax(180px, 1fr) minmax(90px, 0.45fr);
 }
 
+.admin-campaigns-table .admin-table-row {
+  grid-template-columns:
+    minmax(240px, 1.4fr) minmax(120px, 0.75fr) minmax(120px, 0.75fr)
+    minmax(100px, 0.65fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr);
+}
+
 .admin-table-head {
   background: var(--surface-muted);
   color: var(--ink);
@@ -785,6 +791,10 @@ img {
   }
 
   .admin-merchants-table .admin-table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-campaigns-table .admin-table-row {
     grid-template-columns: 1fr;
   }
 

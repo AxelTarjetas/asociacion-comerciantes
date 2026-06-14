@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { getCategories } from "@/lib/queries/categories";
+import { getAdminCampaigns } from "@/lib/queries/campaigns";
 import { getAdminMerchants } from "@/lib/queries/merchants";
 import { getAdminOffers } from "@/lib/queries/offers";
 
@@ -10,10 +11,11 @@ export default async function AdminPage() {
     notFound();
   }
 
-  const [categories, merchants, offers] = await Promise.all([
+  const [categories, merchants, offers, campaigns] = await Promise.all([
     getCategories(),
     getAdminMerchants(),
-    getAdminOffers()
+    getAdminOffers(),
+    getAdminCampaigns()
   ]);
 
   return (
@@ -40,6 +42,10 @@ export default async function AdminPage() {
           <span>Categorías</span>
           <strong>{categories.length}</strong>
         </article>
+        <article className="admin-stat">
+          <span>Campañas</span>
+          <strong>{campaigns.length}</strong>
+        </article>
       </section>
 
       <section className="admin-actions" aria-label="Secciones del admin">
@@ -49,6 +55,9 @@ export default async function AdminPage() {
         </Button>
         <Button href="/admin/canjes" variant="secondary">
           Canjes
+        </Button>
+        <Button href="/admin/campanas" variant="secondary">
+          Campañas
         </Button>
       </section>
     </div>
