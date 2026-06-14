@@ -97,6 +97,7 @@ function mapOffer(row: OfferRow): OfferWithMerchant {
     businessGoal: row.business_goal ?? "",
     startsAt: row.starts_at ?? undefined,
     endsAt: row.ends_at ?? new Date().toISOString(),
+    hasEndsAt: row.ends_at !== null,
     couponCode: row.coupon_code ?? "",
     qrToken: row.qr_token ?? undefined,
     maxRedemptions: row.max_redemptions ?? undefined,

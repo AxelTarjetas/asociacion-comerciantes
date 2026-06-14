@@ -27,6 +27,7 @@ export type Offer = {
   businessGoal: string;
   startsAt?: string;
   endsAt: string;
+  hasEndsAt?: boolean;
   couponCode: string;
   qrToken?: string;
   maxRedemptions?: number;
