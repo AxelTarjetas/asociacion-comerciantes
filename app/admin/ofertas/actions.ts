@@ -45,6 +45,42 @@ function optionalDateTime(formData: FormData, key: string) {
   return value ? new Date(value).toISOString() : null;
 }
 
+function parseOptionalPositiveInteger(formData: FormData, key: string) {
+  const value = getString(formData, key);
+
+  if (!value) {
+    return {
+      value: null,
+      error: false
+    };
+  }
+
+  const parsed = Number(value);
+
+  return {
+    value: Number.isInteger(parsed) && parsed > 0 ? parsed : null,
+    error: !Number.isInteger(parsed) || parsed <= 0
+  };
+}
+
+function parseOptionalDateTime(formData: FormData, key: string) {
+  const value = getString(formData, key);
+
+  if (!value) {
+    return {
+      value: null,
+      error: false
+    };
+  }
+
+  const date = new Date(value);
+
+  return {
+    value: Number.isNaN(date.getTime()) ? null : date.toISOString(),
+    error: Number.isNaN(date.getTime())
+  };
+}
+
 function createSlug(value: string) {
   return value
     .normalize("NFD")
@@ -56,6 +92,10 @@ function createSlug(value: string) {
 
 function redirectWithError(error: string): never {
   redirect(`/admin/ofertas/nueva?error=${error}`);
+}
+
+function redirectEditWithError(slug: string, error: string): never {
+  redirect(`/admin/ofertas/${slug}/editar?error=${error}`);
 }
 
 async function findAvailableOfferIdentity(
@@ -85,6 +125,25 @@ async function findAvailableOfferIdentity(
   }
 
   return null;
+}
+
+async function isOfferSlugAvailableForUpdate(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  slug: string,
+  currentOfferId: string
+) {
+  const { data, error } = await supabase
+    .from("offers")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(`Could not check offer slug availability: ${error.message}`);
+    return false;
+  }
+
+  return !data || data.id === currentOfferId;
 }
 
 export async function getAdminMerchants(): Promise<AdminMerchantsResult> {
@@ -179,4 +238,94 @@ export async function createOfferAction(formData: FormData) {
   }
 
   redirect("/admin/ofertas");
+}
+
+export async function updateOfferAction(currentSlug: string, formData: FormData) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const merchantId = getString(formData, "merchant_id");
+  const title = getString(formData, "title");
+  const slug = createSlug(getString(formData, "slug"));
+  const couponCode = optionalString(formData, "coupon_code")?.toUpperCase() ?? null;
+  const startsAt = parseOptionalDateTime(formData, "starts_at");
+  const endsAt = parseOptionalDateTime(formData, "ends_at");
+  const maxRedemptions = parseOptionalPositiveInteger(formData, "max_redemptions");
+
+  if (!merchantId || !title || !slug) {
+    redirectEditWithError(currentSlug, "missing-required-fields");
+  }
+
+  if (startsAt.error || endsAt.error) {
+    redirectEditWithError(currentSlug, "invalid-dates");
+  }
+
+  if (
+    startsAt.value &&
+    endsAt.value &&
+    new Date(endsAt.value) <= new Date(startsAt.value)
+  ) {
+    redirectEditWithError(currentSlug, "invalid-dates");
+  }
+
+  if (maxRedemptions.error) {
+    redirectEditWithError(currentSlug, "invalid-max-redemptions");
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirectEditWithError(currentSlug, "supabase-not-configured");
+  }
+
+  const { data: currentOffer, error: currentOfferError } = await supabase
+    .from("offers")
+    .select("id")
+    .eq("slug", currentSlug)
+    .maybeSingle();
+
+  if (currentOfferError) {
+    console.warn(`Could not load offer before update: ${currentOfferError.message}`);
+    redirectEditWithError(currentSlug, "update-failed");
+  }
+
+  if (!currentOffer) {
+    redirectEditWithError(currentSlug, "offer-not-found");
+  }
+
+  const slugAvailable = await isOfferSlugAvailableForUpdate(
+    supabase,
+    slug,
+    currentOffer.id
+  );
+
+  if (!slugAvailable) {
+    redirectEditWithError(currentSlug, "slug-unavailable");
+  }
+
+  const { error } = await supabase
+    .from("offers")
+    .update({
+      merchant_id: merchantId,
+      title,
+      slug,
+      description: optionalString(formData, "description"),
+      featured_promotion: optionalString(formData, "featured_promotion"),
+      customer_benefit: optionalString(formData, "customer_benefit"),
+      business_goal: optionalString(formData, "business_goal"),
+      coupon_code: couponCode,
+      starts_at: startsAt.value,
+      ends_at: endsAt.value,
+      max_redemptions: maxRedemptions.value,
+      is_active: getString(formData, "is_active") === "true"
+    })
+    .eq("id", currentOffer.id);
+
+  if (error) {
+    console.warn(`Could not update offer from local admin: ${error.message}`);
+    redirectEditWithError(currentSlug, "update-failed");
+  }
+
+  redirect(`/admin/ofertas/${slug}?updated=1`);
 }

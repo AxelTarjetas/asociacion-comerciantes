@@ -10,6 +10,9 @@ type AdminOfferDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<{
+    updated?: string;
+  }>;
 };
 
 function formatOptionalDate(date: string | undefined) {
@@ -17,13 +20,17 @@ function formatOptionalDate(date: string | undefined) {
 }
 
 export default async function AdminOfferDetailPage({
-  params
+  params,
+  searchParams
 }: AdminOfferDetailPageProps) {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
-  const { slug } = await params;
+  const [{ slug }, queryParams] = await Promise.all([
+    params,
+    searchParams ?? Promise.resolve<{ updated?: string }>({})
+  ]);
   const offer = await getAdminOfferBySlug(slug);
 
   if (!offer) {
@@ -44,10 +51,19 @@ export default async function AdminOfferDetailPage({
           <h1>{offer.title}</h1>
           <p>{offer.description || "Sin descripción registrada."}</p>
         </div>
-        <Button href="/admin/ofertas" variant="secondary">
-          Volver a ofertas
-        </Button>
+        <div className="admin-heading-actions">
+          <Button href={`/admin/ofertas/${offer.slug}/editar`}>
+            Editar oferta
+          </Button>
+          <Button href="/admin/ofertas" variant="secondary">
+            Volver a ofertas
+          </Button>
+        </div>
       </section>
+
+      {queryParams.updated === "1" ? (
+        <p className="admin-form-success">Oferta actualizada correctamente.</p>
+      ) : null}
 
       <section className="admin-detail-grid" aria-label="Datos de la oferta">
         <article className="admin-detail-item">

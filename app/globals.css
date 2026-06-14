@@ -706,6 +706,15 @@ img {
   padding: 14px 16px;
 }
 
+.admin-form-success {
+  max-width: 760px;
+  border: 1px solid #a8d7b5;
+  border-radius: var(--radius);
+  background: #eef9f1;
+  color: #246b39;
+  padding: 14px 16px;
+}
+
 @media (max-width: 860px) {
   .site-header {
     align-items: flex-start;
