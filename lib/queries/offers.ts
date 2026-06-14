@@ -16,6 +16,7 @@ type OfferMerchantRow = {
   address: string | null;
   phone: string | null;
   image_url: string | null;
+  is_active: boolean | null;
   category_id: string;
   categories: Category | Category[] | null;
 };
@@ -61,6 +62,40 @@ const offerSelect = `
     address,
     phone,
     image_url,
+    is_active,
+    category_id,
+    categories (
+      id,
+      name,
+      slug
+    )
+  )
+`;
+
+const publicOfferSelect = `
+  id,
+  merchant_id,
+  title,
+  slug,
+  description,
+  featured_promotion,
+  customer_benefit,
+  business_goal,
+  coupon_code,
+  qr_token,
+  starts_at,
+  ends_at,
+  max_redemptions,
+  is_active,
+  merchants!inner (
+    id,
+    name,
+    slug,
+    description,
+    address,
+    phone,
+    image_url,
+    is_active,
     category_id,
     categories (
       id,
@@ -111,6 +146,7 @@ function mapOffer(row: OfferRow): OfferWithMerchant {
       address: row.merchants.address ?? "",
       phone: row.merchants.phone ?? "",
       imageUrl: row.merchants.image_url ?? undefined,
+      isActive: row.merchants.is_active ?? true,
       category: category ?? fallbackCategory
     }
   };
@@ -126,8 +162,9 @@ export async function getOffers(): Promise<OfferWithMerchant[]> {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("offers")
-    .select(offerSelect)
+    .select(publicOfferSelect)
     .eq("is_active", true)
+    .eq("merchants.is_active", true)
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
     .order("ends_at", { ascending: true });
@@ -226,9 +263,10 @@ export async function getOfferBySlug(
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("offers")
-    .select(offerSelect)
+    .select(publicOfferSelect)
     .eq("slug", slug)
     .eq("is_active", true)
+    .eq("merchants.is_active", true)
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
     .maybeSingle();
@@ -258,9 +296,10 @@ export async function getOffersByMerchantId(
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("offers")
-    .select(offerSelect)
+    .select(publicOfferSelect)
     .eq("merchant_id", merchantId)
     .eq("is_active", true)
+    .eq("merchants.is_active", true)
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
     .order("ends_at", { ascending: true });

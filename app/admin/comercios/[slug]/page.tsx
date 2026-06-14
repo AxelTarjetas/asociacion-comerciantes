@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
+import { setMerchantActiveAction } from "@/app/admin/comercios/actions";
 import { getAdminMerchantBySlug } from "@/lib/queries/merchants";
 import { getAdminOffersByMerchantId } from "@/lib/queries/offers";
 import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
@@ -12,7 +13,16 @@ type AdminMerchantDetailPageProps = {
   }>;
   searchParams?: Promise<{
     updated?: string;
+    statusUpdated?: string;
+    error?: string;
   }>;
+};
+
+const errorMessages: Record<string, string> = {
+  "supabase-not-configured":
+    "Supabase admin no esta configurado. No se puede cambiar el estado del comercio.",
+  "status-update-failed":
+    "No se pudo actualizar el estado del comercio. Revisa Supabase e intentalo de nuevo."
 };
 
 export default async function AdminMerchantDetailPage({
@@ -24,13 +34,15 @@ export default async function AdminMerchantDetailPage({
   }
 
   const { slug } = await params;
-  const { updated } = searchParams ? await searchParams : {};
+  const { updated, statusUpdated, error } = searchParams ? await searchParams : {};
   const merchant = await getAdminMerchantBySlug(slug);
 
   if (!merchant) {
     notFound();
   }
 
+  const nextIsActive = merchant.isActive === false;
+  const errorMessage = error ? errorMessages[error] : null;
   const [offers, redemptions] = await Promise.all([
     getAdminOffersByMerchantId(merchant.id),
     getAdminCouponRedemptions()
@@ -72,6 +84,23 @@ export default async function AdminMerchantDetailPage({
           <Button href={`/admin/comercios/${merchant.slug}/editar`}>
             Editar comercio
           </Button>
+          <form action={setMerchantActiveAction}>
+            <input name="merchant_id" type="hidden" value={merchant.id} />
+            <input name="merchant_slug" type="hidden" value={merchant.slug} />
+            <input
+              name="is_active"
+              type="hidden"
+              value={nextIsActive ? "true" : "false"}
+            />
+            <input
+              name="return_to"
+              type="hidden"
+              value={`/admin/comercios/${merchant.slug}?statusUpdated=1`}
+            />
+            <button className="button button-secondary" type="submit">
+              {merchant.isActive === false ? "Activar" : "Desactivar"}
+            </button>
+          </form>
           <Button href="/admin/comercios" variant="secondary">
             Volver a comercios
           </Button>
@@ -81,6 +110,10 @@ export default async function AdminMerchantDetailPage({
       {updated === "1" ? (
         <p className="empty-state">Comercio actualizado correctamente.</p>
       ) : null}
+      {statusUpdated === "1" ? (
+        <p className="admin-form-success">Estado del comercio actualizado.</p>
+      ) : null}
+      {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
 
       <section className="admin-detail-grid" aria-label="Datos del comercio">
         <article className="admin-detail-item">
@@ -94,6 +127,18 @@ export default async function AdminMerchantDetailPage({
         <article className="admin-detail-item">
           <span>Teléfono</span>
           <strong>{merchant.phone || "Sin teléfono"}</strong>
+        </article>
+        <article className="admin-detail-item">
+          <span>Estado</span>
+          <strong
+            className={
+              merchant.isActive === false
+                ? "status-badge status-badge-inactive"
+                : "status-badge status-badge-active"
+            }
+          >
+            {merchant.isActive === false ? "Inactivo" : "Activo"}
+          </strong>
         </article>
       </section>
 

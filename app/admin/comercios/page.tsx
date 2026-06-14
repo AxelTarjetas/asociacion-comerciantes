@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
+import { setMerchantActiveAction } from "@/app/admin/comercios/actions";
 import { getAdminMerchants } from "@/lib/queries/merchants";
 
 export default async function AdminMerchantsPage() {
@@ -37,31 +38,51 @@ export default async function AdminMerchantsPage() {
           <span>Teléfono</span>
           <span>Dirección</span>
           <span>Estado</span>
+          <span>Acción</span>
         </div>
-        {merchants.map((merchant) => (
-          <div className="admin-table-row" key={merchant.id}>
-            <span>
-              <strong>
-                <Link href={`/admin/comercios/${merchant.slug}`}>
-                  {merchant.name}
-                </Link>
-              </strong>
-              <small>{merchant.slug}</small>
-            </span>
-            <span>{merchant.category.name}</span>
-            <span>{merchant.phone || "Sin teléfono"}</span>
-            <span>{merchant.address || "Sin dirección"}</span>
-            <span
-              className={
-                merchant.isActive === false
-                  ? "status-badge status-badge-inactive"
-                  : "status-badge status-badge-active"
-              }
-            >
-              {merchant.isActive === false ? "Inactivo" : "Activo"}
-            </span>
-          </div>
-        ))}
+        {merchants.map((merchant) => {
+          const nextIsActive = merchant.isActive === false;
+
+          return (
+            <div className="admin-table-row" key={merchant.id}>
+              <span>
+                <strong>
+                  <Link href={`/admin/comercios/${merchant.slug}`}>
+                    {merchant.name}
+                  </Link>
+                </strong>
+                <small>{merchant.slug}</small>
+              </span>
+              <span>{merchant.category.name}</span>
+              <span>{merchant.phone || "Sin teléfono"}</span>
+              <span>{merchant.address || "Sin dirección"}</span>
+              <span
+                className={
+                  merchant.isActive === false
+                    ? "status-badge status-badge-inactive"
+                    : "status-badge status-badge-active"
+                }
+              >
+                {merchant.isActive === false ? "Inactivo" : "Activo"}
+              </span>
+              <span>
+                <form action={setMerchantActiveAction}>
+                  <input name="merchant_id" type="hidden" value={merchant.id} />
+                  <input name="merchant_slug" type="hidden" value={merchant.slug} />
+                  <input
+                    name="is_active"
+                    type="hidden"
+                    value={nextIsActive ? "true" : "false"}
+                  />
+                  <input name="return_to" type="hidden" value="/admin/comercios" />
+                  <button className="button button-secondary" type="submit">
+                    {merchant.isActive === false ? "Activar" : "Desactivar"}
+                  </button>
+                </form>
+              </span>
+            </div>
+          );
+        })}
       </section>
     </div>
   );

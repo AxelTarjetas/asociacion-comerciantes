@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -43,6 +44,18 @@ function redirectWithError(error: string): never {
 
 function redirectEditWithError(slug: string, error: string): never {
   redirect(`/admin/comercios/${encodeURIComponent(slug)}/editar?error=${error}`);
+}
+
+function getSafeMerchantReturnPath(value: string, fallback: string) {
+  return value.startsWith("/admin/comercios") ? value : fallback;
+}
+
+function appendQueryParam(path: string, key: string, value: string) {
+  const [pathname, query = ""] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set(key, value);
+
+  return `${pathname}?${params.toString()}`;
 }
 
 async function findAvailableMerchantSlug(
@@ -240,4 +253,49 @@ export async function updateMerchantAction(formData: FormData) {
   }
 
   redirect(`/admin/comercios/${slug}?updated=1`);
+}
+
+export async function setMerchantActiveAction(formData: FormData) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const merchantId = getString(formData, "merchant_id");
+  const merchantSlug = getString(formData, "merchant_slug");
+  const isActive = getString(formData, "is_active");
+  const returnTo = getSafeMerchantReturnPath(
+    getString(formData, "return_to"),
+    merchantSlug ? `/admin/comercios/${merchantSlug}` : "/admin/comercios"
+  );
+  const errorReturnTo = appendQueryParam(returnTo, "error", "status-update-failed");
+
+  if (!merchantId || !merchantSlug || (isActive !== "true" && isActive !== "false")) {
+    redirect(errorReturnTo);
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirect(appendQueryParam(returnTo, "error", "supabase-not-configured"));
+  }
+
+  const { error } = await supabase
+    .from("merchants")
+    .update({
+      is_active: isActive === "true"
+    })
+    .eq("id", merchantId);
+
+  if (error) {
+    console.warn(`Could not update merchant status from local admin: ${error.message}`);
+    redirect(errorReturnTo);
+  }
+
+  revalidatePath("/admin/comercios");
+  revalidatePath(`/admin/comercios/${merchantSlug}`);
+  revalidatePath("/comercios");
+  revalidatePath(`/comercios/${merchantSlug}`);
+  revalidatePath("/ofertas");
+
+  redirect(returnTo);
 }
