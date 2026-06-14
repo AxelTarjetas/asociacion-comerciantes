@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { getCategories } from "@/lib/queries/categories";
-import { getMerchants } from "@/lib/queries/merchants";
-import { getOffers } from "@/lib/queries/offers";
+import { getAdminMerchants } from "@/lib/queries/merchants";
+import { getAdminOffers } from "@/lib/queries/offers";
 
 export default async function AdminPage() {
   if (!isLocalAdminEnabled()) {
@@ -12,8 +12,8 @@ export default async function AdminPage() {
 
   const [categories, merchants, offers] = await Promise.all([
     getCategories(),
-    getMerchants(),
-    getOffers()
+    getAdminMerchants(),
+    getAdminOffers()
   ]);
 
   return (
@@ -34,7 +34,7 @@ export default async function AdminPage() {
         </article>
         <article className="admin-stat">
           <span>Ofertas activas</span>
-          <strong>{offers.length}</strong>
+          <strong>{offers.filter((offer) => offer.isActive).length}</strong>
         </article>
         <article className="admin-stat">
           <span>Categorías</span>
