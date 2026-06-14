@@ -57,3 +57,22 @@ export type CouponRedemption = {
   merchantName: string;
   merchantSlug: string;
 };
+
+export type Campaign = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  startsAt?: string;
+  endsAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CampaignOffer = {
+  id: string;
+  campaignId: string;
+  offerId: string;
+  createdAt: string;
+};
