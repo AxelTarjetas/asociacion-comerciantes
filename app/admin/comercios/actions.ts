@@ -24,8 +24,25 @@ function createSlug(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function isValidUrl(value: string | null) {
+  if (!value) {
+    return true;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function redirectWithError(error: string): never {
   redirect(`/admin/comercios/nuevo?error=${error}`);
+}
+
+function redirectEditWithError(slug: string, error: string): never {
+  redirect(`/admin/comercios/${encodeURIComponent(slug)}/editar?error=${error}`);
 }
 
 async function findAvailableMerchantSlug(
@@ -51,6 +68,25 @@ async function findAvailableMerchantSlug(
   }
 
   return null;
+}
+
+async function isMerchantSlugAvailableForUpdate(
+  supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  slug: string,
+  merchantId: string
+) {
+  const { data, error } = await supabase
+    .from("merchants")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(`Could not check merchant slug for update: ${error.message}`);
+    return false;
+  }
+
+  return !data || data.id === merchantId;
 }
 
 type AdminCategoriesResult =
@@ -143,4 +179,65 @@ export async function createMerchantAction(formData: FormData) {
   }
 
   redirect("/admin/comercios");
+}
+
+export async function updateMerchantAction(formData: FormData) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const merchantId = getString(formData, "merchant_id");
+  const currentSlug = getString(formData, "current_slug");
+  const name = getString(formData, "name");
+  const categoryId = getString(formData, "category_id");
+  const slug = createSlug(getString(formData, "slug"));
+  const websiteUrl = optionalString(formData, "website_url");
+  const imageUrl = optionalString(formData, "image_url");
+
+  if (!merchantId || !currentSlug || !name || !categoryId || !slug) {
+    redirectEditWithError(currentSlug || "sin-slug", "missing-required-fields");
+  }
+
+  if (!isValidUrl(websiteUrl) || !isValidUrl(imageUrl)) {
+    redirectEditWithError(currentSlug, "invalid-url");
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirectEditWithError(currentSlug, "supabase-not-configured");
+  }
+
+  const slugAvailable = await isMerchantSlugAvailableForUpdate(
+    supabase,
+    slug,
+    merchantId
+  );
+
+  if (!slugAvailable) {
+    redirectEditWithError(currentSlug, "slug-already-exists");
+  }
+
+  const { error } = await supabase
+    .from("merchants")
+    .update({
+      name,
+      slug,
+      category_id: categoryId,
+      description: optionalString(formData, "description"),
+      address: optionalString(formData, "address"),
+      city: optionalString(formData, "city"),
+      phone: optionalString(formData, "phone"),
+      website_url: websiteUrl,
+      image_url: imageUrl,
+      is_active: getString(formData, "is_active") === "true"
+    })
+    .eq("id", merchantId);
+
+  if (error) {
+    console.warn(`Could not update merchant from local admin: ${error.message}`);
+    redirectEditWithError(currentSlug, "update-failed");
+  }
+
+  redirect(`/admin/comercios/${slug}?updated=1`);
 }

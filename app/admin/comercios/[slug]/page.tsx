@@ -10,16 +10,21 @@ type AdminMerchantDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<{
+    updated?: string;
+  }>;
 };
 
 export default async function AdminMerchantDetailPage({
-  params
+  params,
+  searchParams
 }: AdminMerchantDetailPageProps) {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
   const { slug } = await params;
+  const { updated } = searchParams ? await searchParams : {};
   const merchant = await getAdminMerchantBySlug(slug);
 
   if (!merchant) {
@@ -63,10 +68,19 @@ export default async function AdminMerchantDetailPage({
           <h1>{merchant.name}</h1>
           <p>{merchant.description || "Sin descripción registrada."}</p>
         </div>
-        <Button href="/admin/comercios" variant="secondary">
-          Volver a comercios
-        </Button>
+        <div className="admin-heading-actions">
+          <Button href={`/admin/comercios/${merchant.slug}/editar`}>
+            Editar comercio
+          </Button>
+          <Button href="/admin/comercios" variant="secondary">
+            Volver a comercios
+          </Button>
+        </div>
       </section>
+
+      {updated === "1" ? (
+        <p className="empty-state">Comercio actualizado correctamente.</p>
+      ) : null}
 
       <section className="admin-detail-grid" aria-label="Datos del comercio">
         <article className="admin-detail-item">

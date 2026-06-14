@@ -13,7 +13,9 @@ type MerchantRow = {
   slug: string;
   description: string | null;
   address: string | null;
+  city: string | null;
   phone: string | null;
+  website_url: string | null;
   image_url: string | null;
   is_active: boolean | null;
   category_id: string;
@@ -39,7 +41,9 @@ function mapMerchant(row: MerchantRow): MerchantWithCategory {
     categoryId: row.category_id,
     description: row.description ?? "",
     address: row.address ?? "",
+    city: row.city ?? "",
     phone: row.phone ?? "",
+    websiteUrl: row.website_url ?? undefined,
     imageUrl: row.image_url ?? undefined,
     isActive: row.is_active ?? true,
     category: category ?? fallbackCategory
@@ -52,7 +56,9 @@ const merchantSelect = `
   slug,
   description,
   address,
+  city,
   phone,
+  website_url,
   image_url,
   is_active,
   category_id,

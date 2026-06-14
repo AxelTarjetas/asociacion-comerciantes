@@ -11,7 +11,9 @@ export type Merchant = {
   categoryId: string;
   description: string;
   address: string;
+  city?: string;
   phone: string;
+  websiteUrl?: string;
   imageUrl?: string;
   isActive?: boolean;
 };
