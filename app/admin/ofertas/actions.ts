@@ -297,6 +297,9 @@ export async function createOfferAction(formData: FormData) {
     redirectWithError("create-failed");
   }
 
+  revalidatePath("/admin/ofertas");
+  revalidatePath("/ofertas");
+  revalidatePath("/comercios");
   redirect("/admin/ofertas");
 }
 

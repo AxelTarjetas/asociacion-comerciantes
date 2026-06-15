@@ -191,6 +191,8 @@ export async function createMerchantAction(formData: FormData) {
     redirectWithError("create-failed");
   }
 
+  revalidatePath("/admin/comercios");
+  revalidatePath("/comercios");
   redirect("/admin/comercios");
 }
 
