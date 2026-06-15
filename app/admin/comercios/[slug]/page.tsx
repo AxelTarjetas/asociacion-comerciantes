@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
@@ -20,10 +21,14 @@ type AdminMerchantDetailPageProps = {
 
 const errorMessages: Record<string, string> = {
   "supabase-not-configured":
-    "Supabase admin no esta configurado. No se puede cambiar el estado del comercio.",
+    "Supabase admin no está configurado. No se puede cambiar el estado del comercio.",
   "status-update-failed":
-    "No se pudo actualizar el estado del comercio. Revisa Supabase e intentalo de nuevo."
+    "No se pudo actualizar el estado del comercio. Revisa Supabase e inténtalo de nuevo."
 };
+
+function formatOfferEndDate(endsAt: string, hasEndsAt?: boolean) {
+  return hasEndsAt === false ? "Sin fecha límite" : formatDate(endsAt);
+}
 
 export default async function AdminMerchantDetailPage({
   params,
@@ -57,6 +62,7 @@ export default async function AdminMerchantDetailPage({
     },
     {}
   );
+  const activeOffers = offers.filter((offer) => offer.isActive);
   const topOffer = offers.reduce<(typeof offers)[number] | null>(
     (currentTop, offer) => {
       if (!currentTop) {
@@ -73,14 +79,32 @@ export default async function AdminMerchantDetailPage({
   const topOfferRedemptions = topOffer ? (redemptionsByOffer[topOffer.id] ?? 0) : 0;
 
   return (
-    <div className="page-shell">
-      <section className="admin-page-heading">
-        <div>
+    <div className="page-shell admin-detail-page">
+      <section className="admin-detail-hero">
+        <div className="admin-detail-hero-main">
           <p className="eyebrow">Admin temporal local</p>
+          <div className="admin-detail-badges">
+            <span
+              className={
+                merchant.isActive === false
+                  ? "status-badge status-badge-inactive"
+                  : "status-badge status-badge-active"
+              }
+            >
+              {merchant.isActive === false ? "Inactivo" : "Activo"}
+            </span>
+            <span className="status-badge status-badge-muted">
+              {merchant.category.name}
+            </span>
+          </div>
           <h1>{merchant.name}</h1>
           <p>{merchant.description || "Sin descripción registrada."}</p>
+          <div className="admin-detail-context">
+            <span>{merchant.city || "Sin zona"}</span>
+            <span>{merchant.address || "Sin dirección"}</span>
+          </div>
         </div>
-        <div className="admin-heading-actions">
+        <div className="admin-detail-actions">
           <Button href={`/admin/comercios/${merchant.slug}/editar`}>
             Editar comercio
           </Button>
@@ -101,6 +125,9 @@ export default async function AdminMerchantDetailPage({
               {merchant.isActive === false ? "Activar" : "Desactivar"}
             </button>
           </form>
+          <Button href={`/comercios/${merchant.slug}`} variant="secondary">
+            Ver página pública
+          </Button>
           <Button href="/admin/comercios" variant="secondary">
             Volver a comercios
           </Button>
@@ -108,115 +135,184 @@ export default async function AdminMerchantDetailPage({
       </section>
 
       {updated === "1" ? (
-        <p className="empty-state">Comercio actualizado correctamente.</p>
+        <p className="admin-form-success">Comercio actualizado correctamente.</p>
       ) : null}
       {statusUpdated === "1" ? (
         <p className="admin-form-success">Estado del comercio actualizado.</p>
       ) : null}
       {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
 
-      <section className="admin-detail-grid" aria-label="Datos del comercio">
-        <article className="admin-detail-item">
-          <span>Categoría</span>
-          <strong>{merchant.category.name}</strong>
-        </article>
-        <article className="admin-detail-item">
-          <span>Dirección</span>
-          <strong>{merchant.address || "Sin dirección"}</strong>
-        </article>
-        <article className="admin-detail-item">
-          <span>Teléfono</span>
-          <strong>{merchant.phone || "Sin teléfono"}</strong>
-        </article>
-        <article className="admin-detail-item">
-          <span>Estado</span>
-          <strong
-            className={
-              merchant.isActive === false
-                ? "status-badge status-badge-inactive"
-                : "status-badge status-badge-active"
-            }
-          >
-            {merchant.isActive === false ? "Inactivo" : "Activo"}
-          </strong>
-        </article>
-      </section>
-
-      <section className="admin-stats" aria-label="Resumen del comercio">
-        <article className="admin-stat">
-          <span>Total de ofertas</span>
+      <section className="admin-list-summary" aria-label="Resumen del comercio">
+        <article>
+          <span>Total ofertas</span>
           <strong>{offers.length}</strong>
+          <small>registradas</small>
         </article>
-        <article className="admin-stat">
-          <span>Ofertas activas</span>
-          <strong>{offers.filter((offer) => offer.isActive).length}</strong>
+        <article>
+          <span>Activas</span>
+          <strong>{activeOffers.length}</strong>
+          <small>visibles si están vigentes</small>
         </article>
-        <article className="admin-stat">
-          <span>Total de canjes</span>
-          <strong>{merchantRedemptions.length}</strong>
-        </article>
-        <article className="admin-stat">
-          <span>Oferta con más canjes</span>
-          <strong>{topOfferRedemptions > 0 ? topOffer?.title : "Sin canjes"}</strong>
-        </article>
-      </section>
-
-      <section className="admin-table admin-offers-table" aria-label="Ofertas del comercio">
-        <div className="admin-table-row admin-table-head">
-          <span>Oferta</span>
-          <span>Código</span>
-          <span>Activa hasta</span>
+        <article>
           <span>Canjes</span>
-          <span>Estado</span>
-        </div>
-        {offers.map((offer) => (
-          <div className="admin-table-row" key={offer.id}>
-            <span>
-              <strong>{offer.title}</strong>
-              <small>{offer.businessGoal}</small>
-            </span>
-            <span className="code-badge">{offer.couponCode}</span>
-            <span>{formatDate(offer.endsAt)}</span>
-            <span>{redemptionsByOffer[offer.id] ?? 0}</span>
-            <span
-              className={
-                offer.isActive
-                  ? "status-badge status-badge-active"
-                  : "status-badge status-badge-inactive"
-              }
-            >
-              {offer.isActive ? "Activa" : "Inactiva"}
-            </span>
-          </div>
-        ))}
-        {offers.length === 0 ? (
-          <p className="empty-state">Este comercio todavía no tiene ofertas.</p>
-        ) : null}
+          <strong>{merchantRedemptions.length}</strong>
+          <small>del comercio</small>
+        </article>
+        <article>
+          <span>Top oferta</span>
+          <strong>{topOfferRedemptions > 0 ? topOfferRedemptions : "0"}</strong>
+          <small>{topOfferRedemptions > 0 ? topOffer?.title : "Sin canjes"}</small>
+        </article>
       </section>
 
-      <section className="admin-table" aria-label="Canjes del comercio">
-        <div className="admin-table-row admin-table-head">
-          <span>Oferta</span>
-          <span>Código</span>
-          <span>Fecha</span>
-          <span>Notas</span>
-        </div>
-        {merchantRedemptions.map((redemption) => (
-          <div className="admin-table-row" key={redemption.id}>
-            <span>
-              <strong>{redemption.offerTitle}</strong>
-              <small>{redemption.offerSlug || "Sin slug de oferta"}</small>
-            </span>
-            <span className="code-badge">{redemption.couponCode}</span>
-            <span>{formatDate(redemption.redeemedAt)}</span>
-            <span>{redemption.notes ?? "Sin notas"}</span>
+      <section className="admin-detail-card-section" aria-label="Datos del comercio">
+        <div className="admin-detail-section-header">
+          <div>
+            <p className="eyebrow">Ficha</p>
+            <h2>Datos principales</h2>
           </div>
-        ))}
-        {merchantRedemptions.length === 0 ? (
-          <p className="empty-state">
-            Este comercio todavía no tiene canjes registrados.
-          </p>
-        ) : null}
+        </div>
+        <div className="admin-detail-grid">
+          <article className="admin-detail-item">
+            <span>Categoría</span>
+            <strong>{merchant.category.name}</strong>
+          </article>
+          <article className="admin-detail-item">
+            <span>Zona</span>
+            <strong>{merchant.city || "Sin zona"}</strong>
+          </article>
+          <article className="admin-detail-item">
+            <span>Dirección</span>
+            <strong>{merchant.address || "Sin dirección"}</strong>
+          </article>
+          <article className="admin-detail-item">
+            <span>Teléfono</span>
+            <strong>{merchant.phone || "Sin teléfono"}</strong>
+          </article>
+          <article className="admin-detail-item">
+            <span>Web</span>
+            <strong>
+              {merchant.websiteUrl ? (
+                <Link href={merchant.websiteUrl}>{merchant.websiteUrl}</Link>
+              ) : (
+                "Sin web"
+              )}
+            </strong>
+          </article>
+          <article className="admin-detail-item">
+            <span>Slug</span>
+            <strong>{merchant.slug}</strong>
+          </article>
+        </div>
+      </section>
+
+      <section className="admin-detail-card-section" aria-label="Ofertas del comercio">
+        <div className="admin-detail-section-header">
+          <div>
+            <p className="eyebrow">Ofertas</p>
+            <h2>Promociones del comercio</h2>
+          </div>
+          <Button href="/admin/ofertas/nueva" variant="secondary">
+            Nueva oferta
+          </Button>
+        </div>
+        <div className="admin-list-section">
+          {offers.map((offer) => (
+            <article className="admin-list-card admin-detail-list-card" key={offer.id}>
+              <div className="admin-list-card-main">
+                <div className="admin-list-card-title-row">
+                  <span
+                    className={
+                      offer.isActive
+                        ? "status-badge status-badge-active"
+                        : "status-badge status-badge-inactive"
+                    }
+                  >
+                    {offer.isActive ? "Activa" : "Inactiva"}
+                  </span>
+                  <span className="admin-list-card-kicker">
+                    {redemptionsByOffer[offer.id] ?? 0} canjes
+                  </span>
+                </div>
+                <h2>
+                  <Link href={`/admin/ofertas/${offer.slug}`}>{offer.title}</Link>
+                </h2>
+                <small className="admin-list-slug">{offer.slug}</small>
+                <div className="admin-list-meta-grid">
+                  <span>
+                    <strong>Código</strong>
+                    <span className="code-badge">{offer.couponCode}</span>
+                  </span>
+                  <span>
+                    <strong>Activa hasta</strong>
+                    {formatOfferEndDate(offer.endsAt, offer.hasEndsAt)}
+                  </span>
+                  <span>
+                    <strong>Objetivo</strong>
+                    {offer.businessGoal || "Sin objetivo"}
+                  </span>
+                </div>
+              </div>
+              <div className="admin-card-actions">
+                <Button href={`/admin/ofertas/${offer.slug}`} variant="secondary">
+                  Ver
+                </Button>
+                <Button href={`/admin/ofertas/${offer.slug}/editar`} variant="secondary">
+                  Editar
+                </Button>
+              </div>
+            </article>
+          ))}
+          {offers.length === 0 ? (
+            <p className="empty-state">Este comercio todavía no tiene ofertas.</p>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="admin-detail-card-section" aria-label="Canjes del comercio">
+        <div className="admin-detail-section-header">
+          <div>
+            <p className="eyebrow">Resultados</p>
+            <h2>Canjes del comercio</h2>
+          </div>
+        </div>
+        <div className="admin-list-section">
+          {merchantRedemptions.map((redemption) => (
+            <article className="admin-list-card admin-redemption-list-card" key={redemption.id}>
+              <div className="admin-list-card-main">
+                <div className="admin-list-card-title-row">
+                  <span className="status-badge status-badge-active">Canjeado</span>
+                  <span className="admin-list-card-kicker">
+                    {formatDate(redemption.redeemedAt)}
+                  </span>
+                </div>
+                <h2>{redemption.offerTitle}</h2>
+                <small className="admin-list-slug">
+                  {redemption.offerSlug || "Sin slug de oferta"}
+                </small>
+                <div className="admin-list-meta-grid">
+                  <span>
+                    <strong>Código</strong>
+                    <span className="code-badge">{redemption.couponCode}</span>
+                  </span>
+                  <span>
+                    <strong>Fecha</strong>
+                    {formatDate(redemption.redeemedAt)}
+                  </span>
+                  <span>
+                    <strong>Notas</strong>
+                    {redemption.notes ?? "Sin notas"}
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))}
+          {merchantRedemptions.length === 0 ? (
+            <p className="empty-state">
+              Este comercio todavía no tiene canjes registrados.
+            </p>
+          ) : null}
+        </div>
       </section>
     </div>
   );
