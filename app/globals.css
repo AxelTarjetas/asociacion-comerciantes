@@ -2082,6 +2082,18 @@ img {
     padding: 28px 20px;
   }
 
+  .campaign-empty-state {
+    min-height: auto;
+  }
+
+  .campaign-empty-state > span {
+    display: none;
+  }
+
+  .campaign-empty-state p {
+    display: none;
+  }
+
   .public-detail-hero {
     padding-top: 18px;
     padding-bottom: 24px;
