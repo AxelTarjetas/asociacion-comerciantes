@@ -37,74 +37,103 @@ export default async function OfferDetailPage({
   }
 
   return (
-    <div className="page-shell">
-      <section className="detail-layout">
-        <article className="detail-main">
-          {offer.merchant.imageUrl ? (
-            <img src={offer.merchant.imageUrl} alt={offer.merchant.name} />
-          ) : null}
-          <div className="detail-content">
-            <p className="eyebrow">
-              <Link href={`/comercios/${offer.merchant.slug}`}>
-                {offer.merchant.name}
-              </Link>
-            </p>
+    <div className="public-detail-page offer-detail-page">
+      <section className="page-shell public-detail-hero">
+        <Link className="public-back-link" href="/ofertas">
+          Volver a ofertas
+        </Link>
+        <div className="offer-detail-hero-grid">
+          <div className="public-detail-media">
+            {offer.merchant.imageUrl ? (
+              <img src={offer.merchant.imageUrl} alt={offer.merchant.name} />
+            ) : (
+              <div className="public-detail-placeholder" aria-hidden="true">
+                {offer.merchant.name.slice(0, 1)}
+              </div>
+            )}
+            <span className="card-floating-badge">Oferta activa</span>
+          </div>
+          <div className="public-detail-intro">
+            <Link className="merchant-inline-link" href={`/comercios/${offer.merchant.slug}`}>
+              {offer.merchant.name}
+              <span aria-hidden="true">→</span>
+            </Link>
             <h1>{offer.title}</h1>
-            <p className="detail-copy">{offer.description}</p>
-            <p className="offer-highlight">{offer.featuredPromotion}</p>
-            <div className="section-actions">
-              <Button href={`/comercios/${offer.merchant.slug}`}>
-                Ver comercio
-              </Button>
-              <Button href="/ofertas" variant="secondary">
-                Volver a ofertas
-              </Button>
+            {offer.featuredPromotion ? (
+              <p className="offer-detail-promotion">{offer.featuredPromotion}</p>
+            ) : null}
+            <p className="public-detail-summary">{offer.description}</p>
+            <div className="offer-detail-benefit">
+              <span>Tu beneficio</span>
+              <strong>{offer.customerBenefit}</strong>
             </div>
           </div>
-        </article>
+        </div>
+      </section>
 
-        <aside className="detail-panel">
-          <h2>Cupón</h2>
+      <section className="page-shell offer-detail-content">
+        <div className="offer-info-column">
+          <section className="public-info-block">
+            <p className="eyebrow">Todo lo importante</p>
+            <h2>Detalles de la promoción</h2>
+            <div className="public-info-grid">
+              <div>
+                <span>Estado</span>
+                <strong>Activa ahora</strong>
+              </div>
+              <div>
+                <span>Fecha de inicio</span>
+                <strong>{offer.startsAt ? formatDate(offer.startsAt) : "Disponible desde ahora"}</strong>
+              </div>
+              <div>
+                <span>Fecha de fin</span>
+                <strong>{offer.hasEndsAt === false ? "Sin fecha límite" : formatDate(offer.endsAt)}</strong>
+              </div>
+              <div>
+                <span>Límite de canjes</span>
+                <strong>{offer.maxRedemptions ?? "Sin límite indicado"}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="public-info-block merchant-offer-block">
+            <div>
+              <p className="eyebrow">Dónde canjearla</p>
+              <h2>{offer.merchant.name}</h2>
+              <p>{offer.merchant.address}</p>
+            </div>
+            <Button href={`/comercios/${offer.merchant.slug}`} variant="secondary">
+              Ver comercio
+            </Button>
+          </section>
+
+          {offer.businessGoal ? (
+            <section className="public-info-block offer-context-block">
+              <span>Sobre esta promoción</span>
+              <p>{offer.businessGoal}</p>
+            </section>
+          ) : null}
+        </div>
+
+        <aside className="redeem-panel" aria-label="Canjear cupón">
+          <span className="redeem-panel-label">Tu cupón</span>
+          <div className="redeem-code">{offer.couponCode}</div>
+          <p>Enséñalo en el comercio y registra aquí el canje.</p>
           {redeemed === "1" ? (
-            <p className="empty-state">Cupón canjeado correctamente.</p>
+            <p className="redeem-message redeem-message-success">Cupón canjeado correctamente.</p>
           ) : null}
           {error ? (
-            <p className="empty-state">
+            <p className="redeem-message redeem-message-error">
               {redeemErrorMessages[error] ?? "No se pudo canjear el cupón."}
             </p>
           ) : null}
-          <ul className="detail-list">
-            <li>
-              <strong>Qué gana el cliente</strong>
-              {offer.customerBenefit}
-            </li>
-            <li>
-              <strong>Código</strong>
-              <span className="code-badge">{offer.couponCode}</span>
-            </li>
-            <li>
-              <strong>Activa hasta</strong>
-              {formatDate(offer.endsAt)}
-            </li>
-            <li>
-              <strong>Comercio</strong>
-              {offer.merchant.name}
-            </li>
-            <li>
-              <strong>Objetivo comercial</strong>
-              {offer.businessGoal}
-            </li>
-            <li>
-              <strong>Dirección</strong>
-              {offer.merchant.address}
-            </li>
-          </ul>
           <form action={redeemOfferAction} className="redeem-form">
             <input name="offer_slug" type="hidden" value={offer.slug} />
-            <button className="button button-primary" type="submit">
+            <button className="button redeem-button" type="submit">
               Canjear cupón
             </button>
           </form>
+          <small>El canje quedará registrado para medir el uso de la promoción.</small>
         </aside>
       </section>
     </div>
