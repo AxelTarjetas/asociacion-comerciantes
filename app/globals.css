@@ -1794,6 +1794,170 @@ img {
   line-height: 1.5;
 }
 
+.admin-list-page {
+  padding-bottom: 54px;
+}
+
+.admin-list-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding: 22px 0;
+}
+
+.admin-list-summary article {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-list-summary span,
+.admin-list-summary small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.admin-list-summary strong {
+  display: block;
+  overflow: hidden;
+  margin: 8px 0 7px;
+  color: var(--ink);
+  font-size: 2.15rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-list-filters {
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-list-section {
+  display: grid;
+  gap: 14px;
+  padding: 16px 0 48px;
+}
+
+.admin-list-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.admin-list-card:hover {
+  border-color: #a7beb6;
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.admin-list-card-main {
+  min-width: 0;
+}
+
+.admin-list-card-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.admin-list-card-kicker {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.admin-list-card h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  line-height: 1.15;
+}
+
+.admin-list-slug {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+}
+
+.admin-list-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.admin-list-meta-grid > span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--muted);
+  padding: 11px 12px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.admin-list-meta-grid strong {
+  color: var(--ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-list-meta-grid .code-badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-list-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-card-actions {
+  display: grid;
+  min-width: 150px;
+  gap: 9px;
+  justify-items: stretch;
+}
+
+.admin-card-actions .button {
+  width: 100%;
+  min-height: 40px;
+  padding-inline: 13px;
+}
+
+.admin-card-actions form {
+  display: grid;
+}
+
 .admin-filters {
   display: grid;
   grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
@@ -2193,6 +2357,23 @@ img {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-list-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-list-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .admin-list-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-card-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -2472,8 +2653,26 @@ img {
   }
 
   .admin-dashboard-stats,
+  .admin-list-summary,
   .admin-navigation-grid,
   .admin-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-list-summary strong {
+    white-space: normal;
+  }
+
+  .admin-list-filters {
+    padding: 14px;
+  }
+
+  .admin-list-card {
+    padding: 16px;
+  }
+
+  .admin-list-meta-grid,
+  .admin-card-actions {
     grid-template-columns: 1fr;
   }
 

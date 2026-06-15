@@ -3,7 +3,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { formatDate } from "@/lib/utils";
-import { setOfferActiveAction } from "@/app/admin/ofertas/actions";
+import {
+  duplicateOfferAction,
+  setOfferActiveAction
+} from "@/app/admin/ofertas/actions";
 import { getAdminOffers } from "@/lib/queries/offers";
 import { getAdminCouponRedemptions } from "@/lib/queries/redemptions";
 import type { OfferWithMerchant } from "@/types/app";
@@ -52,7 +55,9 @@ function getAdminOfferStatus(offer: OfferWithMerchant, now: Date): AdminOfferSta
   return "active";
 }
 
-function getAdminOffersReturnPath(filters: Awaited<NonNullable<AdminOffersPageProps["searchParams"]>>) {
+function getAdminOffersReturnPath(
+  filters: Awaited<NonNullable<AdminOffersPageProps["searchParams"]>>
+) {
   const params = new URLSearchParams();
 
   if (filters.q) {
@@ -120,6 +125,9 @@ export default async function AdminOffersPage({
   const filteredRedemptions = redemptions.filter((redemption) =>
     filteredOfferIds.has(redemption.offerId)
   );
+  const activeFilteredOffers = filteredOffers.filter(
+    (offer) => getAdminOfferStatus(offer, now) === "active"
+  );
   const topOffer = filteredOffers.reduce<(typeof filteredOffers)[number] | null>(
     (currentTop, offer) => {
       if (!currentTop) {
@@ -136,12 +144,12 @@ export default async function AdminOffersPage({
   const topOfferRedemptions = topOffer ? (redemptionsByOffer[topOffer.id] ?? 0) : 0;
 
   return (
-    <div className="page-shell">
+    <div className="page-shell admin-list-page">
       <section className="admin-page-heading">
         <div>
           <p className="eyebrow">Admin temporal local</p>
           <h1>Ofertas</h1>
-          <p>Listado de solo lectura para revisar ofertas registradas.</p>
+          <p>Filtra promociones, revisa canjes y gestiona su visibilidad.</p>
         </div>
         <div className="admin-heading-actions">
           <Button href="/admin/ofertas/nueva">Nueva oferta</Button>
@@ -151,32 +159,30 @@ export default async function AdminOffersPage({
         </div>
       </section>
 
-      <section className="admin-stats" aria-label="Resumen de ofertas">
-        <article className="admin-stat">
-          <span>Ofertas registradas</span>
+      <section className="admin-list-summary" aria-label="Resumen de ofertas">
+        <article>
+          <span>Mostradas</span>
           <strong>{filteredOffers.length}</strong>
+          <small>ofertas filtradas</small>
         </article>
-        <article className="admin-stat">
-          <span>Ofertas activas</span>
-          <strong>
-            {
-              filteredOffers.filter(
-                (offer) => getAdminOfferStatus(offer, now) === "active"
-              ).length
-            }
-          </strong>
+        <article>
+          <span>Activas</span>
+          <strong>{activeFilteredOffers.length}</strong>
+          <small>vigentes ahora</small>
         </article>
-        <article className="admin-stat">
-          <span>Total de canjes</span>
+        <article>
+          <span>Canjes</span>
           <strong>{filteredRedemptions.length}</strong>
+          <small>en el resultado actual</small>
         </article>
-        <article className="admin-stat">
-          <span>Oferta con más canjes</span>
-          <strong>{topOfferRedemptions > 0 ? topOffer?.title : "Sin canjes"}</strong>
+        <article>
+          <span>Top oferta</span>
+          <strong>{topOfferRedemptions > 0 ? topOfferRedemptions : "0"}</strong>
+          <small>{topOfferRedemptions > 0 ? topOffer?.title : "Sin canjes"}</small>
         </article>
       </section>
 
-      <form action="/admin/ofertas" className="admin-filters" method="get">
+      <form action="/admin/ofertas" className="admin-filters admin-list-filters" method="get">
         <label>
           Buscar
           <input
@@ -218,38 +224,59 @@ export default async function AdminOffersPage({
       </form>
 
       <section
-        className="admin-table admin-offers-dashboard-table"
+        className="admin-list-section admin-offer-list"
         aria-label="Listado admin de ofertas"
       >
-        <div className="admin-table-row admin-table-head">
-          <span>Oferta</span>
-          <span>Comercio</span>
-          <span>Código</span>
-          <span>Activa hasta</span>
-          <span>Canjes</span>
-          <span>Estado</span>
-          <span>AcciÃ³n</span>
-        </div>
         {filteredOffers.map((offer) => {
           const offerStatus = getAdminOfferStatus(offer, now);
           const nextIsActive = !offer.isActive;
+          const duplicateOfferWithSlug = duplicateOfferAction.bind(null, offer.slug);
 
           return (
-            <div className="admin-table-row" key={offer.id}>
-              <span>
-                <strong>
+            <article className="admin-list-card admin-offer-list-card" key={offer.id}>
+              <div className="admin-list-card-main">
+                <div className="admin-list-card-title-row">
+                  <span className={statusClasses[offerStatus]}>
+                    {statusLabels[offerStatus]}
+                  </span>
+                  <span className="admin-list-card-kicker">
+                    {offer.merchant.name}
+                  </span>
+                </div>
+                <h2>
                   <Link href={`/admin/ofertas/${offer.slug}`}>{offer.title}</Link>
-                </strong>
-                <small>{offer.businessGoal}</small>
-              </span>
-              <span>{offer.merchant.name}</span>
-              <span className="code-badge">{offer.couponCode}</span>
-              <span>{formatDate(offer.endsAt)}</span>
-              <span>{redemptionsByOffer[offer.id] ?? 0}</span>
-              <span className={statusClasses[offerStatus]}>
-                {statusLabels[offerStatus]}
-              </span>
-              <span>
+                </h2>
+                <small className="admin-list-slug">{offer.slug}</small>
+                <div className="admin-list-meta-grid">
+                  <span>
+                    <strong>Código</strong>
+                    <span className="code-badge">{offer.couponCode}</span>
+                  </span>
+                  <span>
+                    <strong>Activa hasta</strong>
+                    {offer.hasEndsAt === false ? "Sin fecha límite" : formatDate(offer.endsAt)}
+                  </span>
+                  <span>
+                    <strong>Canjes</strong>
+                    {redemptionsByOffer[offer.id] ?? 0}
+                  </span>
+                </div>
+                {offer.businessGoal ? (
+                  <p className="admin-list-description">{offer.businessGoal}</p>
+                ) : null}
+              </div>
+              <div className="admin-card-actions">
+                <Button href={`/admin/ofertas/${offer.slug}`} variant="secondary">
+                  Ver
+                </Button>
+                <Button href={`/admin/ofertas/${offer.slug}/editar`} variant="secondary">
+                  Editar
+                </Button>
+                <form action={duplicateOfferWithSlug}>
+                  <button className="button button-secondary" type="submit">
+                    Duplicar
+                  </button>
+                </form>
                 <form action={setOfferActiveAction}>
                   <input name="offer_id" type="hidden" value={offer.id} />
                   <input name="offer_slug" type="hidden" value={offer.slug} />
@@ -263,8 +290,8 @@ export default async function AdminOffersPage({
                     {offer.isActive ? "Desactivar" : "Activar"}
                   </button>
                 </form>
-              </span>
-            </div>
+              </div>
+            </article>
           );
         })}
         {offers.length === 0 ? (
