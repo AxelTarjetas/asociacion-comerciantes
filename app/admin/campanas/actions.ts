@@ -204,3 +204,81 @@ export async function addOfferToCampaignAction(
   revalidatePath(`/admin/campanas/${campaignSlug}`);
   redirectCampaignWithParam(campaignSlug, "offerAdded", "1");
 }
+
+export async function removeOfferFromCampaignAction(
+  campaignSlug: string,
+  formData: FormData
+) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const campaignOfferId = getString(formData, "campaign_offer_id");
+
+  if (!campaignOfferId) {
+    redirectCampaignWithParam(campaignSlug, "error", "remove-offer");
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirectCampaignWithParam(
+      campaignSlug,
+      "error",
+      "supabase-not-configured"
+    );
+  }
+
+  const { data: campaign, error: campaignError } = await supabase
+    .from("campaigns")
+    .select("id")
+    .eq("slug", campaignSlug)
+    .maybeSingle();
+
+  if (campaignError) {
+    console.warn(
+      `Could not validate campaign before removing offer: ${campaignError.message}`
+    );
+    redirectCampaignWithParam(campaignSlug, "error", "remove-offer");
+  }
+
+  if (!campaign) {
+    notFound();
+  }
+
+  const { data: assignment, error: assignmentError } = await supabase
+    .from("campaign_offers")
+    .select("id")
+    .eq("id", campaignOfferId)
+    .eq("campaign_id", campaign.id)
+    .maybeSingle();
+
+  if (assignmentError) {
+    console.warn(
+      `Could not validate campaign offer before removal: ${assignmentError.message}`
+    );
+    redirectCampaignWithParam(campaignSlug, "error", "remove-offer");
+  }
+
+  if (!assignment) {
+    redirectCampaignWithParam(campaignSlug, "error", "remove-offer");
+  }
+
+  const { data: deletedAssignment, error } = await supabase
+    .from("campaign_offers")
+    .delete()
+    .eq("id", assignment.id)
+    .eq("campaign_id", campaign.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !deletedAssignment) {
+    console.warn(
+      `Could not remove offer from campaign: ${error?.message ?? "assignment not found"}`
+    );
+    redirectCampaignWithParam(campaignSlug, "error", "remove-offer");
+  }
+
+  revalidatePath(`/admin/campanas/${campaignSlug}`);
+  redirectCampaignWithParam(campaignSlug, "offerRemoved", "1");
+}

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { addOfferToCampaignAction } from "@/app/admin/campanas/actions";
+import {
+  addOfferToCampaignAction,
+  removeOfferFromCampaignAction
+} from "@/app/admin/campanas/actions";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import {
@@ -17,6 +20,7 @@ type AdminCampaignDetailPageProps = {
   }>;
   searchParams?: Promise<{
     offerAdded?: string;
+    offerRemoved?: string;
     alreadyExists?: string;
     error?: string;
   }>;
@@ -42,7 +46,9 @@ const errorMessages: Record<string, string> = {
     "Supabase admin no está configurado. No se pueden asociar ofertas.",
   "invalid-assignment": "La campaña o la oferta seleccionada no existe.",
   "offer-add-failed":
-    "No se pudo añadir la oferta a la campaña. Inténtalo de nuevo."
+    "No se pudo añadir la oferta a la campaña. Inténtalo de nuevo.",
+  "remove-offer":
+    "No se pudo quitar la oferta de la campaña. Puede que la asociación ya no exista."
 };
 
 function getCampaignPeriodStatus(
@@ -77,6 +83,7 @@ export default async function AdminCampaignDetailPage({
     searchParams ??
       Promise.resolve<{
         offerAdded?: string;
+        offerRemoved?: string;
         alreadyExists?: string;
         error?: string;
       }>({})
@@ -97,11 +104,22 @@ export default async function AdminCampaignDetailPage({
   const offersById = new Map(offers.map((offer) => [offer.id, offer]));
   const associatedOffers = campaignOffers.flatMap((campaignOffer) => {
     const offer = offersById.get(campaignOffer.offerId);
-    return offer ? [offer] : [];
+    return offer
+      ? [
+          {
+            campaignOfferId: campaignOffer.id,
+            offer
+          }
+        ]
+      : [];
   });
   const availableOffers = offers.filter((offer) => !associatedOfferIds.has(offer.id));
   const periodStatus = getCampaignPeriodStatus(campaign, new Date());
   const addOfferToCampaign = addOfferToCampaignAction.bind(null, campaign.slug);
+  const removeOfferFromCampaign = removeOfferFromCampaignAction.bind(
+    null,
+    campaign.slug
+  );
   const errorMessage = queryParams.error ? errorMessages[queryParams.error] : null;
 
   return (
@@ -119,6 +137,9 @@ export default async function AdminCampaignDetailPage({
 
       {queryParams.offerAdded === "1" ? (
         <p className="admin-form-success">Oferta añadida a la campaña.</p>
+      ) : null}
+      {queryParams.offerRemoved === "1" ? (
+        <p className="admin-form-success">Oferta quitada de la campaña.</p>
       ) : null}
       {queryParams.alreadyExists === "1" ? (
         <p className="admin-form-error">
@@ -200,7 +221,7 @@ export default async function AdminCampaignDetailPage({
       )}
 
       <section
-        className="admin-table admin-offers-table"
+        className="admin-table admin-campaign-offers-table"
         aria-label="Ofertas asociadas a la campaña"
       >
         <div className="admin-table-row admin-table-head">
@@ -209,9 +230,10 @@ export default async function AdminCampaignDetailPage({
           <span>Estado</span>
           <span>Inicio</span>
           <span>Fin</span>
+          <span>Acción</span>
         </div>
-        {associatedOffers.map((offer) => (
-          <div className="admin-table-row" key={offer.id}>
+        {associatedOffers.map(({ campaignOfferId, offer }) => (
+          <div className="admin-table-row" key={campaignOfferId}>
             <span>
               <strong>
                 <Link href={`/admin/ofertas/${offer.slug}`}>{offer.title}</Link>
@@ -233,6 +255,18 @@ export default async function AdminCampaignDetailPage({
               {formatOptionalDate(
                 offer.hasEndsAt === false ? undefined : offer.endsAt
               )}
+            </span>
+            <span>
+              <form action={removeOfferFromCampaign}>
+                <input
+                  name="campaign_offer_id"
+                  type="hidden"
+                  value={campaignOfferId}
+                />
+                <button className="button button-secondary" type="submit">
+                  Quitar
+                </button>
+              </form>
             </span>
           </div>
         ))}

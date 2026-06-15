@@ -664,6 +664,12 @@ img {
     minmax(100px, 0.65fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr);
 }
 
+.admin-campaign-offers-table .admin-table-row {
+  grid-template-columns:
+    minmax(220px, 1.25fr) minmax(150px, 0.85fr) minmax(90px, 0.5fr)
+    minmax(120px, 0.7fr) minmax(120px, 0.7fr) minmax(100px, 0.55fr);
+}
+
 .admin-table-head {
   background: var(--surface-muted);
   color: var(--ink);
@@ -795,6 +801,10 @@ img {
   }
 
   .admin-campaigns-table .admin-table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-campaign-offers-table .admin-table-row {
     grid-template-columns: 1fr;
   }
 
