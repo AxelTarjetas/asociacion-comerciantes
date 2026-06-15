@@ -1941,6 +1941,21 @@ img {
   -webkit-line-clamp: 2;
 }
 
+.admin-list-note {
+  margin: 14px 0 0;
+  border: 1px solid #ead7a1;
+  border-radius: 8px;
+  background: #fff8df;
+  color: #7b5b12;
+  padding: 10px 12px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.admin-redemption-list-card {
+  grid-template-columns: 1fr;
+}
+
 .admin-card-actions {
   display: grid;
   min-width: 150px;

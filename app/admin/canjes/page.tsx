@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
@@ -72,40 +73,44 @@ export default async function AdminRedemptionsPage({
   const latestRedemption = filteredRedemptions[0];
 
   return (
-    <div className="page-shell">
+    <div className="page-shell admin-list-page">
       <section className="admin-page-heading">
         <div>
           <p className="eyebrow">Admin temporal local</p>
           <h1>Canjes</h1>
-          <p>Lectura simple de cupones usados para validar medición del MVP.</p>
+          <p>Consulta cupones usados, filtra resultados y revisa qué promociones generan interés.</p>
         </div>
-        <Button href="/admin" variant="secondary">
-          Volver al admin
-        </Button>
+        <div className="admin-heading-actions">
+          <Button href="/admin" variant="secondary">
+            Volver al admin
+          </Button>
+        </div>
       </section>
 
-      <section className="admin-stats" aria-label="Resumen de canjes">
-        <article className="admin-stat">
-          <span>Total de canjes</span>
+      <section className="admin-list-summary" aria-label="Resumen de canjes">
+        <article>
+          <span>Total</span>
           <strong>{filteredRedemptions.length}</strong>
+          <small>canjes filtrados</small>
         </article>
-        <article className="admin-stat">
-          <span>Comercios con canjes</span>
+        <article>
+          <span>Comercios</span>
           <strong>{merchantsWithRedemptions}</strong>
+          <small>con canjes</small>
         </article>
-        <article className="admin-stat">
-          <span>Ofertas con canjes</span>
+        <article>
+          <span>Ofertas</span>
           <strong>{offersWithRedemptions}</strong>
+          <small>con actividad</small>
         </article>
-        <article className="admin-stat">
+        <article>
           <span>Último canje</span>
-          <strong>
-            {latestRedemption ? formatDate(latestRedemption.redeemedAt) : "Sin datos"}
-          </strong>
+          <strong>{latestRedemption ? formatDate(latestRedemption.redeemedAt) : "0"}</strong>
+          <small>{latestRedemption ? latestRedemption.offerTitle : "Sin datos"}</small>
         </article>
       </section>
 
-      <form action="/admin/canjes" className="admin-filters" method="get">
+      <form action="/admin/canjes" className="admin-filters admin-list-filters" method="get">
         <label>
           Buscar
           <input
@@ -148,30 +153,55 @@ export default async function AdminRedemptionsPage({
       </form>
 
       <section
-        className="admin-table admin-redemptions-table"
+        className="admin-list-section admin-redemption-list"
         aria-label="Listado admin de canjes"
       >
-        <div className="admin-table-row admin-table-head">
-          <span>Oferta</span>
-          <span>Comercio</span>
-          <span>Código</span>
-          <span>Fecha</span>
-          <span>Notas</span>
-        </div>
         {filteredRedemptions.map((redemption) => (
-          <div className="admin-table-row" key={redemption.id}>
-            <span>
-              <strong>{redemption.offerTitle}</strong>
-              <small>{redemption.offerSlug || "Sin slug de oferta"}</small>
-            </span>
-            <span>
-              <strong>{redemption.merchantName}</strong>
-              <small>{redemption.merchantSlug || "Sin slug de comercio"}</small>
-            </span>
-            <span className="code-badge">{redemption.couponCode}</span>
-            <span>{formatDate(redemption.redeemedAt)}</span>
-            <span>{redemption.notes ?? "Sin notas"}</span>
-          </div>
+          <article className="admin-list-card admin-redemption-list-card" key={redemption.id}>
+            <div className="admin-list-card-main">
+              <div className="admin-list-card-title-row">
+                <span className="status-badge status-badge-active">Canjeado</span>
+                <span className="admin-list-card-kicker">
+                  {formatDate(redemption.redeemedAt)}
+                </span>
+              </div>
+              <h2>
+                {redemption.offerSlug ? (
+                  <Link href={`/admin/ofertas/${redemption.offerSlug}`}>
+                    {redemption.offerTitle}
+                  </Link>
+                ) : (
+                  redemption.offerTitle
+                )}
+              </h2>
+              <small className="admin-list-slug">
+                {redemption.offerSlug || "Sin slug de oferta"}
+              </small>
+              <div className="admin-list-meta-grid">
+                <span>
+                  <strong>Comercio</strong>
+                  {redemption.merchantSlug ? (
+                    <Link href={`/admin/comercios/${redemption.merchantSlug}`}>
+                      {redemption.merchantName}
+                    </Link>
+                  ) : (
+                    redemption.merchantName
+                  )}
+                </span>
+                <span>
+                  <strong>Código</strong>
+                  <span className="code-badge">{redemption.couponCode}</span>
+                </span>
+                <span>
+                  <strong>Fecha</strong>
+                  {formatDate(redemption.redeemedAt)}
+                </span>
+              </div>
+              <p className="admin-list-description">
+                {redemption.notes ?? "Sin notas"}
+              </p>
+            </div>
+          </article>
         ))}
         {redemptions.length === 0 ? (
           <p className="empty-state">Todavía no hay canjes registrados.</p>
