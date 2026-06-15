@@ -46,6 +46,12 @@ function redirectWithError(error: string): never {
   redirect(`/admin/campanas/nueva?error=${error}`);
 }
 
+function redirectEditWithError(campaignSlug: string, error: string): never {
+  redirect(
+    `/admin/campanas/${encodeURIComponent(campaignSlug)}/editar?error=${error}`
+  );
+}
+
 function redirectCampaignWithParam(
   campaignSlug: string,
   key: string,
@@ -131,6 +137,103 @@ export async function createCampaignAction(formData: FormData) {
   revalidatePath("/admin/campanas");
   revalidatePath("/admin");
   redirect("/admin/campanas?created=1");
+}
+
+export async function updateCampaignAction(
+  currentSlug: string,
+  formData: FormData
+) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const name = getString(formData, "name");
+  const slug = createSlug(getString(formData, "slug"));
+  const startsAt = parseOptionalDateTime(formData, "starts_at");
+  const endsAt = parseOptionalDateTime(formData, "ends_at");
+
+  if (!name || !slug) {
+    redirectEditWithError(currentSlug, "missing-required-fields");
+  }
+
+  if (startsAt.error || endsAt.error) {
+    redirectEditWithError(currentSlug, "invalid-dates");
+  }
+
+  if (
+    startsAt.value &&
+    endsAt.value &&
+    new Date(endsAt.value) <= new Date(startsAt.value)
+  ) {
+    redirectEditWithError(currentSlug, "invalid-dates");
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirectEditWithError(currentSlug, "supabase-not-configured");
+  }
+
+  const { data: currentCampaign, error: currentCampaignError } = await supabase
+    .from("campaigns")
+    .select("id")
+    .eq("slug", currentSlug)
+    .maybeSingle();
+
+  if (currentCampaignError) {
+    console.warn(
+      `Could not load campaign before update: ${currentCampaignError.message}`
+    );
+    redirectEditWithError(currentSlug, "update-failed");
+  }
+
+  if (!currentCampaign) {
+    redirectEditWithError(currentSlug, "campaign-not-found");
+  }
+
+  const { data: conflictingCampaign, error: slugCheckError } = await supabase
+    .from("campaigns")
+    .select("id")
+    .eq("slug", slug)
+    .neq("id", currentCampaign.id)
+    .maybeSingle();
+
+  if (slugCheckError) {
+    console.warn(
+      `Could not check campaign slug before update: ${slugCheckError.message}`
+    );
+    redirectEditWithError(currentSlug, "update-failed");
+  }
+
+  if (conflictingCampaign) {
+    redirectEditWithError(currentSlug, "slug-already-exists");
+  }
+
+  const { data: updatedCampaign, error } = await supabase
+    .from("campaigns")
+    .update({
+      name,
+      slug,
+      description: optionalString(formData, "description"),
+      starts_at: startsAt.value,
+      ends_at: endsAt.value,
+      is_active: getString(formData, "is_active") === "true"
+    })
+    .eq("id", currentCampaign.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !updatedCampaign) {
+    console.warn(
+      `Could not update campaign from local admin: ${error?.message ?? "campaign not found"}`
+    );
+    redirectEditWithError(currentSlug, "update-failed");
+  }
+
+  revalidatePath("/admin/campanas");
+  revalidatePath(`/admin/campanas/${currentSlug}`);
+  revalidatePath(`/admin/campanas/${slug}`);
+  redirect(`/admin/campanas/${encodeURIComponent(slug)}?updated=1`);
 }
 
 export async function addOfferToCampaignAction(

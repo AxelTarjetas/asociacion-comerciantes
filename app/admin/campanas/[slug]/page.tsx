@@ -20,6 +20,7 @@ type AdminCampaignDetailPageProps = {
     slug: string;
   }>;
   searchParams?: Promise<{
+    updated?: string;
     offerAdded?: string;
     offerRemoved?: string;
     statusUpdated?: string;
@@ -86,6 +87,7 @@ export default async function AdminCampaignDetailPage({
     params,
     searchParams ??
       Promise.resolve<{
+        updated?: string;
         offerAdded?: string;
         offerRemoved?: string;
         statusUpdated?: string;
@@ -137,6 +139,9 @@ export default async function AdminCampaignDetailPage({
           <p>{campaign.description || "Sin descripción registrada."}</p>
         </div>
         <div className="admin-heading-actions">
+          <Button href={`/admin/campanas/${campaign.slug}/editar`}>
+            Editar campaña
+          </Button>
           <form action={setCampaignActiveAction}>
             <input name="campaign_id" type="hidden" value={campaign.id} />
             <input name="campaign_slug" type="hidden" value={campaign.slug} />
@@ -160,6 +165,9 @@ export default async function AdminCampaignDetailPage({
         </div>
       </section>
 
+      {queryParams.updated === "1" ? (
+        <p className="admin-form-success">Campaña actualizada correctamente.</p>
+      ) : null}
       {queryParams.offerAdded === "1" ? (
         <p className="admin-form-success">Oferta añadida a la campaña.</p>
       ) : null}
