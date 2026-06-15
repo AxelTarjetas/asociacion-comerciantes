@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
@@ -95,7 +96,11 @@ export default async function AdminCampaignsPage({
           return (
             <div className="admin-table-row" key={campaign.id}>
               <span>
-                <strong>{campaign.name}</strong>
+                <strong>
+                  <Link href={`/admin/campanas/${campaign.slug}`}>
+                    {campaign.name}
+                  </Link>
+                </strong>
                 <small>{campaign.slug}</small>
                 {campaign.description ? <small>{campaign.description}</small> : null}
               </span>
