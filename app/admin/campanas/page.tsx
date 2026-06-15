@@ -119,6 +119,9 @@ export default async function AdminCampaignsPage({
                   </Link>
                 </strong>
                 <small>{campaign.slug}</small>
+                <small>
+                  <Link href={`/campanas/${campaign.slug}`}>Ver pública</Link>
+                </small>
                 {campaign.description ? <small>{campaign.description}</small> : null}
               </span>
               <span>{formatOptionalDate(campaign.startsAt)}</span>

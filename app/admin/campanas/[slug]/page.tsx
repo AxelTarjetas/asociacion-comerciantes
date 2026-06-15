@@ -122,6 +122,8 @@ export default async function AdminCampaignDetailPage({
   });
   const availableOffers = offers.filter((offer) => !associatedOfferIds.has(offer.id));
   const periodStatus = getCampaignPeriodStatus(campaign, new Date());
+  const publicPath = `/campanas/${campaign.slug}`;
+  const isPubliclyVisible = campaign.isActive && periodStatus === "current";
   const addOfferToCampaign = addOfferToCampaignAction.bind(null, campaign.slug);
   const removeOfferFromCampaign = removeOfferFromCampaignAction.bind(
     null,
@@ -139,6 +141,9 @@ export default async function AdminCampaignDetailPage({
           <p>{campaign.description || "Sin descripción registrada."}</p>
         </div>
         <div className="admin-heading-actions">
+          <Button href={publicPath} variant="secondary">
+            Ver página pública
+          </Button>
           <Button href={`/admin/campanas/${campaign.slug}/editar`}>
             Editar campaña
           </Button>
@@ -183,8 +188,19 @@ export default async function AdminCampaignDetailPage({
         </p>
       ) : null}
       {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
+      {!isPubliclyVisible ? (
+        <p className="admin-form-error">
+          La página pública solo será visible si la campaña está activa y vigente.
+        </p>
+      ) : null}
 
       <section className="admin-detail-grid" aria-label="Datos de la campaña">
+        <article className="admin-detail-item">
+          <span>URL pública</span>
+          <strong>
+            <Link href={publicPath}>{publicPath}</Link>
+          </strong>
+        </article>
         <article className="admin-detail-item">
           <span>Slug</span>
           <strong>{campaign.slug}</strong>
