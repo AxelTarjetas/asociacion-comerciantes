@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PublicNavigation } from "@/components/ui/PublicNavigation";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,16 +18,22 @@ export default function RootLayout({
       <body>
         <header className="site-header">
           <Link className="brand" href="/">
-            Comercio Vivo
+            <span className="brand-mark" aria-hidden="true">CV</span>
+            <span>Comercio Vivo</span>
           </Link>
           <nav className="main-nav" aria-label="Navegación principal">
-            <Link href="/comercios">Comercios</Link>
             <Link href="/ofertas">Ofertas</Link>
+            <Link href="/comercios">Comercios</Link>
+            <Link href="/#campanas">Campañas</Link>
           </nav>
         </header>
         <main>{children}</main>
+        <PublicNavigation />
         <footer className="site-footer">
-          <p>Una base sencilla para asociaciones de comerciantes locales.</p>
+          <Link className="brand footer-brand" href="/">
+            Comercio Vivo
+          </Link>
+          <p>Compra cerca. Descubre más. Haz barrio.</p>
         </footer>
       </body>
     </html>

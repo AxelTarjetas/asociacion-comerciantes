@@ -9,14 +9,21 @@ type OfferCardProps = {
 
 export function OfferCard({ offer, showMerchant = true }: OfferCardProps) {
   return (
-    <article className="card">
-      {offer.merchant.imageUrl ? (
-        <img
-          className="card-image"
-          src={offer.merchant.imageUrl}
-          alt={offer.merchant.name}
-        />
-      ) : null}
+    <article className="card offer-card">
+      <div className="card-media">
+        {offer.merchant.imageUrl ? (
+          <img
+            className="card-image"
+            src={offer.merchant.imageUrl}
+            alt={offer.merchant.name}
+          />
+        ) : (
+          <div className="card-image-placeholder" aria-hidden="true">
+            {offer.merchant.name.slice(0, 1)}
+          </div>
+        )}
+        <span className="card-floating-badge">Oferta</span>
+      </div>
       <div className="card-body">
         <span className="card-meta">
           {showMerchant ? offer.merchant.name : offer.merchant.category.name}
@@ -24,14 +31,13 @@ export function OfferCard({ offer, showMerchant = true }: OfferCardProps) {
         <h2>
           <Link href={`/ofertas/${offer.slug}`}>{offer.title}</Link>
         </h2>
-        <p className="offer-highlight">{offer.featuredPromotion}</p>
-        <p>{offer.description}</p>
-        <p>
-          <strong>Cliente:</strong> {offer.customerBenefit}
-        </p>
-        <span className="code-badge">{offer.couponCode}</span>
+        {offer.featuredPromotion ? (
+          <p className="offer-highlight">{offer.featuredPromotion}</p>
+        ) : null}
+        {offer.customerBenefit ? <p className="card-summary">{offer.customerBenefit}</p> : null}
         <div className="card-footer">
-          <span>Hasta el {formatDate(offer.endsAt)}</span>
+          <span>{offer.hasEndsAt === false ? "Sin fecha límite" : `Hasta ${formatDate(offer.endsAt)}`}</span>
+          {offer.couponCode ? <span className="code-badge">{offer.couponCode}</span> : null}
         </div>
       </div>
     </article>

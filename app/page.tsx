@@ -1,91 +1,159 @@
+import Link from "next/link";
+import { MerchantCard } from "@/components/merchants/MerchantCard";
+import { OfferCard } from "@/components/offers/OfferCard";
 import { Button } from "@/components/ui/Button";
-import { getMerchants, getOffers } from "@/lib/mock-data";
+import { getMerchants } from "@/lib/queries/merchants";
+import { getOffers } from "@/lib/queries/offers";
 
-export default function HomePage() {
-  const merchants = getMerchants();
-  const offers = getOffers();
+const quickLinks = [
+  {
+    href: "/ofertas",
+    index: "01",
+    label: "Ofertas",
+    detail: "Ahorra hoy"
+  },
+  {
+    href: "/comercios",
+    index: "02",
+    label: "Comercios",
+    detail: "Compra cerca"
+  },
+  {
+    href: "#campanas",
+    index: "03",
+    label: "Campañas",
+    detail: "Descubre planes"
+  },
+  {
+    href: "/ofertas",
+    index: "04",
+    label: "Canjear",
+    detail: "Abre tu cupón"
+  }
+];
+
+export default async function HomePage() {
+  const [merchants, offers] = await Promise.all([getMerchants(), getOffers()]);
+  const featuredOffers = offers.slice(0, 3);
+  const localMerchants = merchants.slice(0, 4);
 
   return (
-    <div className="page-shell">
-      <section className="hero">
-        <div>
-          <p className="eyebrow">Comercios locales, promociones exclusivas y resultados medibles</p>
-          <h1>Promociones que dan visibilidad y atraen clientes cerca de tu comercio.</h1>
-          <p className="hero-copy">
-            Comercio Vivo ayuda a pequeños negocios a lanzar ofertas claras, llegar a
-            vecinos de su zona y comprobar qué promociones generan interés real antes
-            de escalar el modelo a toda una asociación.
-          </p>
+    <div className="public-home">
+      <section className="home-hero" aria-labelledby="home-title">
+        <img
+          src="https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=1800&q=88"
+          alt="Calle comercial con tiendas locales y vecinos paseando"
+        />
+        <div className="home-hero-shade" />
+        <div className="home-hero-content">
+          <p className="home-kicker">Tu barrio, más vivo</p>
+          <h1 id="home-title">Ofertas locales cerca de ti</h1>
+          <p>Descubre comercios, ahorra con promociones y vuelve a comprar cerca.</p>
           <div className="hero-actions">
-            <Button href="/comercios">Ver comercios</Button>
-            <Button href="/ofertas" variant="secondary">
-              Explorar ofertas
+            <Button href="/ofertas">Ver ofertas</Button>
+            <Button href="/comercios" variant="secondary">
+              Explorar comercios
             </Button>
           </div>
         </div>
-        <div className="hero-visual" aria-label="Escaparate de comercios locales">
-          <img
-            src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80"
-            alt="Comercio local con mesas preparadas para clientes"
-          />
-          <div className="hero-visual-caption">
-            <div className="hero-stat">
-              <strong>{merchants.length}</strong>
-              <span>comercios piloto</span>
-            </div>
-            <div className="hero-stat">
-              <strong>{offers.length}</strong>
-              <span>promociones medibles</span>
-            </div>
-            <div className="hero-stat">
-              <strong>1</strong>
-              <span>validación comercial</span>
-            </div>
+      </section>
+
+      <div className="home-content">
+        <section className="home-search" aria-label="Buscar en Comercio Vivo">
+          <label htmlFor="home-search-input">¿Qué buscas hoy?</label>
+          <div className="home-search-field">
+            <span aria-hidden="true">Buscar</span>
+            <input
+              id="home-search-input"
+              type="search"
+              placeholder="Comercios, ofertas, categorías..."
+              readOnly
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="home-section-heading">
-        <p className="eyebrow">Cómo ayuda a tu comercio</p>
-        <h2>Promociones simples, más visibilidad y señales claras para decidir.</h2>
-      </section>
+        <nav className="quick-access" aria-label="Accesos rápidos">
+          {quickLinks.map((item) => (
+            <Link className="quick-access-item" href={item.href} key={item.label}>
+              <span>{item.index}</span>
+              <strong>{item.label}</strong>
+              <small>{item.detail}</small>
+            </Link>
+          ))}
+        </nav>
 
-      <section className="feature-strip" aria-label="Cómo ayuda a tu comercio">
-        <article className="feature">
-          <h2>Crea promociones atractivas</h2>
-          <p>
-            Convierte una oferta sencilla en una razón concreta para visitar tu tienda
-            esta semana.
-          </p>
-        </article>
-        <article className="feature">
-          <h2>Llega a vecinos de tu zona</h2>
-          <p>
-            Da más visibilidad a tu comercio entre personas cercanas que ya compran en
-            el barrio.
-          </p>
-        </article>
-        <article className="feature">
-          <h2>Mide el interés generado</h2>
-          <p>
-            Usa códigos y cupones para saber qué mensajes funcionan y qué promociones
-            merecen repetirse.
-          </p>
-        </article>
-      </section>
+        <section className="home-feed" aria-labelledby="featured-offers-title">
+          <div className="home-section-header">
+            <div>
+              <p className="eyebrow">Para aprovechar ahora</p>
+              <h2 id="featured-offers-title">Ofertas destacadas</h2>
+            </div>
+            <Link className="text-link" href="/ofertas">
+              Ver todas
+            </Link>
+          </div>
+          {featuredOffers.length > 0 ? (
+            <div className="home-card-grid">
+              {featuredOffers.map((offer) => (
+                <OfferCard key={offer.id} offer={offer} />
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">Muy pronto habrá nuevas ofertas por aquí.</p>
+          )}
+        </section>
 
-      <section className="growth-section">
-        <div>
-          <p className="eyebrow">Estrategia MVP</p>
-          <h2>Pensado para empezar comercio por comercio y escalar a asociaciones.</h2>
-        </div>
-        <p>
-          Primero validamos con negocios individuales: una promoción, una ficha clara y
-          una forma simple de medir respuesta. Cuando el formato demuestre valor, la
-          misma base puede agrupar campañas por asociación, zona o categoría sin cambiar
-          la experiencia principal.
-        </p>
-      </section>
+        <section className="campaign-showcase" id="campanas" aria-labelledby="campaigns-title">
+          <div className="campaign-showcase-copy">
+            <span className="campaign-badge">Campañas activas</span>
+            <h2 id="campaigns-title">Planes para recorrer y disfrutar el barrio</h2>
+            <p>Rutas, temporadas especiales y promociones agrupadas en un solo lugar.</p>
+          </div>
+          <div className="campaign-showcase-action">
+            <strong>{offers.length} promociones disponibles</strong>
+            <Button href="/ofertas" variant="secondary">
+              Descubrir ahora
+            </Button>
+          </div>
+        </section>
+
+        <section className="home-feed" aria-labelledby="local-merchants-title">
+          <div className="home-section-header">
+            <div>
+              <p className="eyebrow">A un paseo de distancia</p>
+              <h2 id="local-merchants-title">Comercios locales</h2>
+            </div>
+            <Link className="text-link" href="/comercios">
+              Ver todos
+            </Link>
+          </div>
+          {localMerchants.length > 0 ? (
+            <div className="home-card-grid merchant-home-grid">
+              {localMerchants.map((merchant) => (
+                <MerchantCard
+                  key={merchant.id}
+                  merchant={merchant}
+                  offerCount={
+                    offers.filter((offer) => offer.merchantId === merchant.id).length
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">Muy pronto habrá comercios para descubrir.</p>
+          )}
+        </section>
+
+        <section className="business-callout">
+          <div>
+            <p className="eyebrow">Para comercios y asociaciones</p>
+            <h2>Más visibilidad. Más visitas. Resultados que puedes medir.</h2>
+          </div>
+          <Button href="/comercios" variant="secondary">
+            Conocer la plataforma
+          </Button>
+        </section>
+      </div>
     </div>
   );
 }
