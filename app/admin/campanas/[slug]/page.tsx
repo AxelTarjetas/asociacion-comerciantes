@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { addOfferToCampaignAction } from "@/app/admin/campanas/actions";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import {
@@ -13,6 +14,11 @@ import type { Campaign } from "@/types/app";
 type AdminCampaignDetailPageProps = {
   params: Promise<{
     slug: string;
+  }>;
+  searchParams?: Promise<{
+    offerAdded?: string;
+    alreadyExists?: string;
+    error?: string;
   }>;
 };
 
@@ -28,6 +34,15 @@ const periodClasses: Record<CampaignPeriodStatus, string> = {
   future: "status-badge status-badge-muted",
   current: "status-badge status-badge-active",
   expired: "status-badge status-badge-inactive"
+};
+
+const errorMessages: Record<string, string> = {
+  "missing-offer": "Selecciona una oferta para añadirla a la campaña.",
+  "supabase-not-configured":
+    "Supabase admin no está configurado. No se pueden asociar ofertas.",
+  "invalid-assignment": "La campaña o la oferta seleccionada no existe.",
+  "offer-add-failed":
+    "No se pudo añadir la oferta a la campaña. Inténtalo de nuevo."
 };
 
 function getCampaignPeriodStatus(
@@ -50,13 +65,22 @@ function formatOptionalDate(date: string | undefined) {
 }
 
 export default async function AdminCampaignDetailPage({
-  params
+  params,
+  searchParams
 }: AdminCampaignDetailPageProps) {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
-  const { slug } = await params;
+  const [{ slug }, queryParams] = await Promise.all([
+    params,
+    searchParams ??
+      Promise.resolve<{
+        offerAdded?: string;
+        alreadyExists?: string;
+        error?: string;
+      }>({})
+  ]);
   const campaign = await getAdminCampaignBySlug(slug);
 
   if (!campaign) {
@@ -67,12 +91,18 @@ export default async function AdminCampaignDetailPage({
     getAdminCampaignOffers(campaign.id),
     getAdminOffers()
   ]);
+  const associatedOfferIds = new Set(
+    campaignOffers.map((campaignOffer) => campaignOffer.offerId)
+  );
   const offersById = new Map(offers.map((offer) => [offer.id, offer]));
   const associatedOffers = campaignOffers.flatMap((campaignOffer) => {
     const offer = offersById.get(campaignOffer.offerId);
     return offer ? [offer] : [];
   });
+  const availableOffers = offers.filter((offer) => !associatedOfferIds.has(offer.id));
   const periodStatus = getCampaignPeriodStatus(campaign, new Date());
+  const addOfferToCampaign = addOfferToCampaignAction.bind(null, campaign.slug);
+  const errorMessage = queryParams.error ? errorMessages[queryParams.error] : null;
 
   return (
     <div className="page-shell">
@@ -86,6 +116,16 @@ export default async function AdminCampaignDetailPage({
           Volver a campañas
         </Button>
       </section>
+
+      {queryParams.offerAdded === "1" ? (
+        <p className="admin-form-success">Oferta añadida a la campaña.</p>
+      ) : null}
+      {queryParams.alreadyExists === "1" ? (
+        <p className="admin-form-error">
+          Esta oferta ya estaba asociada a la campaña.
+        </p>
+      ) : null}
+      {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
 
       <section className="admin-detail-grid" aria-label="Datos de la campaña">
         <article className="admin-detail-item">
@@ -130,6 +170,34 @@ export default async function AdminCampaignDetailPage({
           <strong>{campaignOffers.length}</strong>
         </article>
       </section>
+
+      {availableOffers.length > 0 ? (
+        <form className="admin-form" action={addOfferToCampaign}>
+          <input name="campaign_id" type="hidden" value={campaign.id} />
+          <label>
+            <span>Añadir oferta</span>
+            <select name="offer_id" required defaultValue="">
+              <option value="" disabled>
+                Selecciona una oferta
+              </option>
+              {availableOffers.map((offer) => (
+                <option key={offer.id} value={offer.id}>
+                  {offer.title} — {offer.merchant.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="admin-form-actions">
+            <button className="button button-primary" type="submit">
+              Añadir oferta
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p className="empty-state">
+          No hay más ofertas disponibles para asociar a esta campaña.
+        </p>
+      )}
 
       <section
         className="admin-table admin-offers-table"

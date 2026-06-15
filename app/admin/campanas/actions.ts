@@ -46,6 +46,15 @@ function redirectWithError(error: string): never {
   redirect(`/admin/campanas/nueva?error=${error}`);
 }
 
+function redirectCampaignWithParam(
+  campaignSlug: string,
+  key: string,
+  value: string
+): never {
+  const params = new URLSearchParams({ [key]: value });
+  redirect(`/admin/campanas/${encodeURIComponent(campaignSlug)}?${params}`);
+}
+
 export async function createCampaignAction(formData: FormData) {
   if (!isLocalAdminEnabled()) {
     notFound();
@@ -110,4 +119,88 @@ export async function createCampaignAction(formData: FormData) {
   revalidatePath("/admin/campanas");
   revalidatePath("/admin");
   redirect("/admin/campanas?created=1");
+}
+
+export async function addOfferToCampaignAction(
+  campaignSlug: string,
+  formData: FormData
+) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const campaignId = getString(formData, "campaign_id");
+  const offerId = getString(formData, "offer_id");
+
+  if (!campaignId || !offerId) {
+    redirectCampaignWithParam(campaignSlug, "error", "missing-offer");
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirectCampaignWithParam(
+      campaignSlug,
+      "error",
+      "supabase-not-configured"
+    );
+  }
+
+  const [{ data: campaign, error: campaignError }, { data: offer, error: offerError }] =
+    await Promise.all([
+      supabase
+        .from("campaigns")
+        .select("id")
+        .eq("id", campaignId)
+        .eq("slug", campaignSlug)
+        .maybeSingle(),
+      supabase.from("offers").select("id").eq("id", offerId).maybeSingle()
+    ]);
+
+  if (campaignError || offerError) {
+    console.warn(
+      "Could not validate campaign offer assignment:",
+      campaignError?.message ?? offerError?.message
+    );
+    redirectCampaignWithParam(campaignSlug, "error", "offer-add-failed");
+  }
+
+  if (!campaign || !offer) {
+    redirectCampaignWithParam(campaignSlug, "error", "invalid-assignment");
+  }
+
+  const { data: existingAssignment, error: assignmentCheckError } = await supabase
+    .from("campaign_offers")
+    .select("id")
+    .eq("campaign_id", campaign.id)
+    .eq("offer_id", offer.id)
+    .maybeSingle();
+
+  if (assignmentCheckError) {
+    console.warn(
+      `Could not check campaign offer assignment: ${assignmentCheckError.message}`
+    );
+    redirectCampaignWithParam(campaignSlug, "error", "offer-add-failed");
+  }
+
+  if (existingAssignment) {
+    redirectCampaignWithParam(campaignSlug, "alreadyExists", "1");
+  }
+
+  const { error } = await supabase.from("campaign_offers").insert({
+    campaign_id: campaign.id,
+    offer_id: offer.id
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      redirectCampaignWithParam(campaignSlug, "alreadyExists", "1");
+    }
+
+    console.warn(`Could not add offer to campaign: ${error.message}`);
+    redirectCampaignWithParam(campaignSlug, "error", "offer-add-failed");
+  }
+
+  revalidatePath(`/admin/campanas/${campaignSlug}`);
+  redirectCampaignWithParam(campaignSlug, "offerAdded", "1");
 }
