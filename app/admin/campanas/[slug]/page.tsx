@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   addOfferToCampaignAction,
-  removeOfferFromCampaignAction
+  removeOfferFromCampaignAction,
+  setCampaignActiveAction
 } from "@/app/admin/campanas/actions";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
@@ -21,6 +22,7 @@ type AdminCampaignDetailPageProps = {
   searchParams?: Promise<{
     offerAdded?: string;
     offerRemoved?: string;
+    statusUpdated?: string;
     alreadyExists?: string;
     error?: string;
   }>;
@@ -43,12 +45,14 @@ const periodClasses: Record<CampaignPeriodStatus, string> = {
 const errorMessages: Record<string, string> = {
   "missing-offer": "Selecciona una oferta para añadirla a la campaña.",
   "supabase-not-configured":
-    "Supabase admin no está configurado. No se pueden asociar ofertas.",
+    "Supabase admin no está configurado. No se pueden realizar cambios.",
   "invalid-assignment": "La campaña o la oferta seleccionada no existe.",
   "offer-add-failed":
     "No se pudo añadir la oferta a la campaña. Inténtalo de nuevo.",
   "remove-offer":
-    "No se pudo quitar la oferta de la campaña. Puede que la asociación ya no exista."
+    "No se pudo quitar la oferta de la campaña. Puede que la asociación ya no exista.",
+  "status-update-failed":
+    "No se pudo actualizar el estado de la campaña. Inténtalo de nuevo."
 };
 
 function getCampaignPeriodStatus(
@@ -84,6 +88,7 @@ export default async function AdminCampaignDetailPage({
       Promise.resolve<{
         offerAdded?: string;
         offerRemoved?: string;
+        statusUpdated?: string;
         alreadyExists?: string;
         error?: string;
       }>({})
@@ -120,6 +125,7 @@ export default async function AdminCampaignDetailPage({
     null,
     campaign.slug
   );
+  const nextIsActive = !campaign.isActive;
   const errorMessage = queryParams.error ? errorMessages[queryParams.error] : null;
 
   return (
@@ -130,9 +136,28 @@ export default async function AdminCampaignDetailPage({
           <h1>{campaign.name}</h1>
           <p>{campaign.description || "Sin descripción registrada."}</p>
         </div>
-        <Button href="/admin/campanas" variant="secondary">
-          Volver a campañas
-        </Button>
+        <div className="admin-heading-actions">
+          <form action={setCampaignActiveAction}>
+            <input name="campaign_id" type="hidden" value={campaign.id} />
+            <input name="campaign_slug" type="hidden" value={campaign.slug} />
+            <input
+              name="is_active"
+              type="hidden"
+              value={nextIsActive ? "true" : "false"}
+            />
+            <input
+              name="return_to"
+              type="hidden"
+              value={`/admin/campanas/${campaign.slug}?statusUpdated=1`}
+            />
+            <button className="button button-secondary" type="submit">
+              {campaign.isActive ? "Desactivar" : "Activar"}
+            </button>
+          </form>
+          <Button href="/admin/campanas" variant="secondary">
+            Volver a campañas
+          </Button>
+        </div>
       </section>
 
       {queryParams.offerAdded === "1" ? (
@@ -140,6 +165,9 @@ export default async function AdminCampaignDetailPage({
       ) : null}
       {queryParams.offerRemoved === "1" ? (
         <p className="admin-form-success">Oferta quitada de la campaña.</p>
+      ) : null}
+      {queryParams.statusUpdated === "1" ? (
+        <p className="admin-form-success">Estado de la campaña actualizado.</p>
       ) : null}
       {queryParams.alreadyExists === "1" ? (
         <p className="admin-form-error">

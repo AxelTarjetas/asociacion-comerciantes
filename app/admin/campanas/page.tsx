@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { setCampaignActiveAction } from "@/app/admin/campanas/actions";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
 import { getAdminCampaigns } from "@/lib/queries/campaigns";
@@ -9,6 +10,8 @@ import type { Campaign } from "@/types/app";
 type AdminCampaignsPageProps = {
   searchParams?: Promise<{
     created?: string;
+    statusUpdated?: string;
+    error?: string;
   }>;
 };
 
@@ -54,7 +57,12 @@ export default async function AdminCampaignsPage({
 
   const [campaigns, queryParams] = await Promise.all([
     getAdminCampaigns(),
-    searchParams ?? Promise.resolve<{ created?: string }>({})
+    searchParams ??
+      Promise.resolve<{
+        created?: string;
+        statusUpdated?: string;
+        error?: string;
+      }>({})
   ]);
   const now = new Date();
 
@@ -77,6 +85,14 @@ export default async function AdminCampaignsPage({
       {queryParams.created === "1" ? (
         <p className="admin-form-success">Campaña creada correctamente.</p>
       ) : null}
+      {queryParams.statusUpdated === "1" ? (
+        <p className="admin-form-success">Estado de la campaña actualizado.</p>
+      ) : null}
+      {queryParams.error ? (
+        <p className="admin-form-error">
+          No se pudo actualizar el estado de la campaña.
+        </p>
+      ) : null}
 
       <section
         className="admin-table admin-campaigns-table"
@@ -89,6 +105,7 @@ export default async function AdminCampaignsPage({
           <span>Activación</span>
           <span>Periodo</span>
           <span>Creada</span>
+          <span>Acción</span>
         </div>
         {campaigns.map((campaign) => {
           const periodStatus = getCampaignPeriodStatus(campaign, now);
@@ -119,6 +136,29 @@ export default async function AdminCampaignsPage({
                 {periodLabels[periodStatus]}
               </span>
               <span>{formatDate(campaign.createdAt)}</span>
+              <span>
+                <form action={setCampaignActiveAction}>
+                  <input name="campaign_id" type="hidden" value={campaign.id} />
+                  <input
+                    name="campaign_slug"
+                    type="hidden"
+                    value={campaign.slug}
+                  />
+                  <input
+                    name="is_active"
+                    type="hidden"
+                    value={campaign.isActive ? "false" : "true"}
+                  />
+                  <input
+                    name="return_to"
+                    type="hidden"
+                    value="/admin/campanas?statusUpdated=1"
+                  />
+                  <button className="button button-secondary" type="submit">
+                    {campaign.isActive ? "Desactivar" : "Activar"}
+                  </button>
+                </form>
+              </span>
             </div>
           );
         })}

@@ -55,6 +55,18 @@ function redirectCampaignWithParam(
   redirect(`/admin/campanas/${encodeURIComponent(campaignSlug)}?${params}`);
 }
 
+function getSafeCampaignReturnPath(value: string, fallback: string) {
+  return value.startsWith("/admin/campanas") ? value : fallback;
+}
+
+function appendQueryParam(path: string, key: string, value: string) {
+  const [pathname, query = ""] = path.split("?");
+  const params = new URLSearchParams(query);
+  params.set(key, value);
+
+  return `${pathname}?${params.toString()}`;
+}
+
 export async function createCampaignAction(formData: FormData) {
   if (!isLocalAdminEnabled()) {
     notFound();
@@ -281,4 +293,58 @@ export async function removeOfferFromCampaignAction(
 
   revalidatePath(`/admin/campanas/${campaignSlug}`);
   redirectCampaignWithParam(campaignSlug, "offerRemoved", "1");
+}
+
+export async function setCampaignActiveAction(formData: FormData) {
+  if (!isLocalAdminEnabled()) {
+    notFound();
+  }
+
+  const campaignId = getString(formData, "campaign_id");
+  const campaignSlug = getString(formData, "campaign_slug");
+  const isActive = getString(formData, "is_active");
+  const returnTo = getSafeCampaignReturnPath(
+    getString(formData, "return_to"),
+    campaignSlug ? `/admin/campanas/${campaignSlug}` : "/admin/campanas"
+  );
+  const errorReturnTo = appendQueryParam(
+    returnTo,
+    "error",
+    "status-update-failed"
+  );
+
+  if (
+    !campaignId ||
+    !campaignSlug ||
+    (isActive !== "true" && isActive !== "false")
+  ) {
+    redirect(errorReturnTo);
+  }
+
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirect(appendQueryParam(returnTo, "error", "supabase-not-configured"));
+  }
+
+  const { data: updatedCampaign, error } = await supabase
+    .from("campaigns")
+    .update({
+      is_active: isActive === "true"
+    })
+    .eq("id", campaignId)
+    .eq("slug", campaignSlug)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !updatedCampaign) {
+    console.warn(
+      `Could not update campaign status from local admin: ${error?.message ?? "campaign not found"}`
+    );
+    redirect(errorReturnTo);
+  }
+
+  revalidatePath("/admin/campanas");
+  revalidatePath(`/admin/campanas/${campaignSlug}`);
+  redirect(returnTo);
 }

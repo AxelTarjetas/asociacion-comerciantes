@@ -661,7 +661,8 @@ img {
 .admin-campaigns-table .admin-table-row {
   grid-template-columns:
     minmax(240px, 1.4fr) minmax(120px, 0.75fr) minmax(120px, 0.75fr)
-    minmax(100px, 0.65fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr);
+    minmax(100px, 0.65fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr)
+    minmax(110px, 0.65fr);
 }
 
 .admin-campaign-offers-table .admin-table-row {
