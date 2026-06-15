@@ -39,6 +39,10 @@ export function OfferCard({ offer, showMerchant = true }: OfferCardProps) {
           <span>{offer.hasEndsAt === false ? "Sin fecha límite" : `Hasta ${formatDate(offer.endsAt)}`}</span>
           {offer.couponCode ? <span className="code-badge">{offer.couponCode}</span> : null}
         </div>
+        <Link className="card-primary-action" href={`/ofertas/${offer.slug}`}>
+          Ver y canjear
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
     </article>
   );

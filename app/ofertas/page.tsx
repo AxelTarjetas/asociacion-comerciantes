@@ -5,20 +5,34 @@ export default async function OffersPage() {
   const offers = await getOffers();
 
   return (
-    <div className="page-shell">
-      <section className="page-heading">
-        <p className="eyebrow">Promociones exclusivas</p>
-        <h1>Ofertas pensadas para atraer clientes a comercios locales.</h1>
-        <p>
-          Cada cupón muestra el beneficio para el cliente, el comercio asociado y la
-          fecha límite para poder medir el interés generado.
-        </p>
+    <div className="page-shell public-list-page">
+      <section className="listing-header">
+        <div>
+          <p className="eyebrow">Ahorra comprando cerca</p>
+          <h1>Ofertas locales para aprovechar hoy</h1>
+          <p>Promociones claras, comercios cercanos y cupones listos para usar.</p>
+        </div>
+        <div className="listing-count" aria-label={`${offers.length} ofertas activas`}>
+          <strong>{offers.length}</strong>
+          <span>ofertas activas</span>
+        </div>
       </section>
 
-      <section className="grid" aria-label="Listado de ofertas">
-        {offers.map((offer) => (
-          <OfferCard key={offer.id} offer={offer} />
-        ))}
+      <div className="listing-note" aria-label="Información sobre los cupones">
+        <span className="status-badge status-badge-active">Activas ahora</span>
+        <p>Abre una oferta para ver su código y canjearla en el comercio.</p>
+      </div>
+
+      <section className="grid public-card-grid" aria-label="Listado de ofertas">
+        {offers.length > 0 ? (
+          offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)
+        ) : (
+          <div className="public-empty-state">
+            <span aria-hidden="true">%</span>
+            <h2>Pronto habrá nuevas ofertas</h2>
+            <p>Estamos preparando más promociones de comercios locales.</p>
+          </div>
+        )}
       </section>
     </div>
   );

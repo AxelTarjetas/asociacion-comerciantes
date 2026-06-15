@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { OfferCard } from "@/components/offers/OfferCard";
 import { Button } from "@/components/ui/Button";
 import {
   getCampaignBySlug,
@@ -42,65 +43,53 @@ export default async function CampaignPage({ params }: CampaignPageProps) {
   const campaignDates = formatCampaignDates(campaign);
 
   return (
-    <div className="page-shell">
-      <section className="page-heading">
-        <p className="eyebrow">Campaña de comercio local</p>
-        <h1>{campaign.name}</h1>
-        {campaign.description ? <p>{campaign.description}</p> : null}
-        {campaignDates ? <p><strong>{campaignDates}</strong></p> : null}
+    <div className="campaign-public-page">
+      <section className="campaign-public-hero">
+        <div className="page-shell campaign-public-hero-inner">
+          <Link className="back-link" href="/">
+            Volver al inicio
+          </Link>
+          <div className="campaign-status-row">
+            <span className="campaign-badge">Campaña activa</span>
+            <span className="campaign-period-badge">Vigente ahora</span>
+          </div>
+          <h1>{campaign.name}</h1>
+          {campaign.description ? <p>{campaign.description}</p> : null}
+          <div className="campaign-public-meta">
+            {campaignDates ? <strong>{campaignDates}</strong> : <strong>Sin fecha límite</strong>}
+            <span>
+              {offers.length} {offers.length === 1 ? "oferta disponible" : "ofertas disponibles"}
+            </span>
+          </div>
+        </div>
       </section>
 
-      <section className="related-section" aria-label="Ofertas de la campaña">
-        <div className="section-heading-row">
-          <h2 className="section-title">Ofertas disponibles</h2>
+      <section className="page-shell campaign-offers-section" aria-label="Ofertas de la campaña">
+        <div className="home-section-header">
+          <div>
+            <p className="eyebrow">Promociones de la campaña</p>
+            <h2>Ofertas disponibles</h2>
+          </div>
           <Button href="/ofertas" variant="secondary">
-            Ver todas las ofertas
+            Ver todas
           </Button>
         </div>
 
         {offers.length > 0 ? (
-          <div className="grid">
+          <div className="grid public-card-grid">
             {offers.map((offer) => (
-              <article className="card" key={offer.id}>
-                {offer.merchant.imageUrl ? (
-                  <img
-                    className="card-image"
-                    src={offer.merchant.imageUrl}
-                    alt={offer.merchant.name}
-                  />
-                ) : null}
-                <div className="card-body">
-                  <span className="card-meta">
-                    <Link href={`/comercios/${offer.merchant.slug}`}>
-                      {offer.merchant.name}
-                    </Link>
-                  </span>
-                  <h2>
-                    <Link href={`/ofertas/${offer.slug}`}>{offer.title}</Link>
-                  </h2>
-                  {offer.featuredPromotion ? (
-                    <p className="offer-highlight">{offer.featuredPromotion}</p>
-                  ) : null}
-                  <p>{offer.description}</p>
-                  {offer.customerBenefit ? (
-                    <p>
-                      <strong>Beneficio:</strong> {offer.customerBenefit}
-                    </p>
-                  ) : null}
-                  <div className="card-footer">
-                    <Link href={`/ofertas/${offer.slug}`}>Ver oferta</Link>
-                    <Link href={`/comercios/${offer.merchant.slug}`}>
-                      Ver comercio
-                    </Link>
-                  </div>
-                </div>
-              </article>
+              <OfferCard key={offer.id} offer={offer} />
             ))}
           </div>
         ) : (
-          <p className="empty-state">
-            Esta campaña todavía no tiene ofertas disponibles.
-          </p>
+          <div className="public-empty-state campaign-empty-state">
+            <span aria-hidden="true">%</span>
+            <h2>Esta campaña todavía no tiene ofertas disponibles</h2>
+            <p>Vuelve pronto para descubrir nuevas promociones.</p>
+            <Button href="/ofertas" variant="secondary">
+              Explorar otras ofertas
+            </Button>
+          </div>
         )}
       </section>
     </div>

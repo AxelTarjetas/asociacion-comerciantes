@@ -34,6 +34,10 @@ export function MerchantCard({ merchant, offerCount }: MerchantCardProps) {
             </span>
           ) : null}
         </div>
+        <Link className="card-primary-action merchant-card-action" href={`/comercios/${merchant.slug}`}>
+          Ver comercio
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
     </article>
   );
