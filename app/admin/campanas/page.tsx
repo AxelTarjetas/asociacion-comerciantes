@@ -5,6 +5,12 @@ import { getAdminCampaigns } from "@/lib/queries/campaigns";
 import { formatDate } from "@/lib/utils";
 import type { Campaign } from "@/types/app";
 
+type AdminCampaignsPageProps = {
+  searchParams?: Promise<{
+    created?: string;
+  }>;
+};
+
 type CampaignPeriodStatus = "future" | "current" | "expired";
 
 const periodLabels: Record<CampaignPeriodStatus, string> = {
@@ -38,12 +44,17 @@ function formatOptionalDate(date: string | undefined) {
   return date ? formatDate(date) : "Sin fecha";
 }
 
-export default async function AdminCampaignsPage() {
+export default async function AdminCampaignsPage({
+  searchParams
+}: AdminCampaignsPageProps) {
   if (!isLocalAdminEnabled()) {
     notFound();
   }
 
-  const campaigns = await getAdminCampaigns();
+  const [campaigns, queryParams] = await Promise.all([
+    getAdminCampaigns(),
+    searchParams ?? Promise.resolve<{ created?: string }>({})
+  ]);
   const now = new Date();
 
   return (
@@ -54,10 +65,17 @@ export default async function AdminCampaignsPage() {
           <h1>Campañas</h1>
           <p>Listado de solo lectura para revisar las acciones comerciales.</p>
         </div>
-        <Button href="/admin" variant="secondary">
-          Volver al admin
-        </Button>
+        <div className="admin-heading-actions">
+          <Button href="/admin/campanas/nueva">Nueva campaña</Button>
+          <Button href="/admin" variant="secondary">
+            Volver al admin
+          </Button>
+        </div>
       </section>
+
+      {queryParams.created === "1" ? (
+        <p className="admin-form-success">Campaña creada correctamente.</p>
+      ) : null}
 
       <section
         className="admin-table admin-campaigns-table"
