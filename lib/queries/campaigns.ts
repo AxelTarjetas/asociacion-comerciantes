@@ -1,6 +1,8 @@
 import { isLocalAdminEnabled } from "@/lib/admin";
+import { getOffers } from "@/lib/queries/offers";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { Campaign, CampaignOffer } from "@/types/app";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Campaign, CampaignOffer, OfferWithMerchant } from "@/types/app";
 
 type CampaignRow = {
   id: string;
@@ -54,6 +56,76 @@ function mapCampaignOffer(row: CampaignOfferRow): CampaignOffer {
     offerId: row.offer_id,
     createdAt: row.created_at
   };
+}
+
+export async function getCampaignBySlug(
+  slug: string
+): Promise<Campaign | undefined> {
+  const supabase = createSupabaseServerClient();
+
+  if (!supabase) {
+    console.warn("Supabase public client is not configured. Returning no campaign.");
+    return undefined;
+  }
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("campaigns")
+    .select(campaignSelect)
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .or(`starts_at.is.null,starts_at.lte.${now}`)
+    .or(`ends_at.is.null,ends_at.gte.${now}`)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(`Could not load public campaign from Supabase: ${error.message}`);
+    return undefined;
+  }
+
+  return data ? mapCampaign(data as CampaignRow) : undefined;
+}
+
+export async function getCampaignOffersBySlug(
+  slug: string
+): Promise<OfferWithMerchant[]> {
+  const supabase = createSupabaseServerClient();
+
+  if (!supabase) {
+    console.warn(
+      "Supabase public client is not configured. Returning no campaign offers."
+    );
+    return [];
+  }
+
+  const campaign = await getCampaignBySlug(slug);
+
+  if (!campaign) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("campaign_offers")
+    .select("offer_id")
+    .eq("campaign_id", campaign.id);
+
+  if (error) {
+    console.warn(
+      `Could not load public campaign offers from Supabase: ${error.message}`
+    );
+    return [];
+  }
+
+  const offerIds = new Set(
+    ((data ?? []) as Array<{ offer_id: string }>).map((row) => row.offer_id)
+  );
+
+  if (offerIds.size === 0) {
+    return [];
+  }
+
+  const publicOffers = await getOffers();
+  return publicOffers.filter((offer) => offerIds.has(offer.id));
 }
 
 export async function getAdminCampaigns(): Promise<Campaign[]> {
