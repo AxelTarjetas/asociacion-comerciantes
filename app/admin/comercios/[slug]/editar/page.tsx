@@ -61,16 +61,39 @@ export default async function EditMerchantPage({
   const hasCategories = categoriesResult.categories.length > 0;
 
   return (
-    <div className="page-shell">
-      <section className="admin-page-heading">
-        <div>
+    <div className="page-shell admin-form-page">
+      <section className="admin-detail-hero admin-form-hero">
+        <div className="admin-detail-hero-main">
           <p className="eyebrow">Admin local temporal</p>
+          <div className="admin-detail-badges">
+            <span
+              className={
+                merchant.isActive === false
+                  ? "status-badge status-badge-inactive"
+                  : "status-badge status-badge-active"
+              }
+            >
+              {merchant.isActive === false ? "Inactivo" : "Activo"}
+            </span>
+            <span className="status-badge status-badge-muted">
+              {merchant.category.name}
+            </span>
+          </div>
           <h1>Editar comercio</h1>
-          <p>Actualización mínima desde servidor para desarrollo local.</p>
+          <p>Actualiza la ficha pública, los datos de contacto y la visibilidad.</p>
+          <div className="admin-detail-context">
+            <span>{merchant.name}</span>
+            <span>{merchant.slug}</span>
+          </div>
         </div>
-        <Button href={`/admin/comercios/${merchant.slug}`} variant="secondary">
-          Volver al detalle
-        </Button>
+        <div className="admin-detail-actions">
+          <Button href={`/admin/comercios/${merchant.slug}`} variant="secondary">
+            Volver al detalle
+          </Button>
+          <Button href="/admin/comercios" variant="secondary">
+            Volver a comercios
+          </Button>
+        </div>
       </section>
 
       {categoriesErrorMessage ? (
@@ -82,77 +105,119 @@ export default async function EditMerchantPage({
       {errorMessage ? <p className="admin-form-error">{errorMessage}</p> : null}
 
       {categoriesErrorMessage || !hasCategories ? null : (
-        <form className="admin-form" action={updateMerchantAction}>
+        <form className="admin-form admin-structured-form" action={updateMerchantAction}>
           <input name="merchant_id" type="hidden" value={merchant.id} />
           <input name="current_slug" type="hidden" value={merchant.slug} />
 
-          <label>
-            <span>Nombre</span>
-            <input name="name" required type="text" defaultValue={merchant.name} />
-          </label>
+          <section className="admin-form-card" aria-label="Identidad del comercio">
+            <div className="admin-form-card-header">
+              <p className="eyebrow">Identidad</p>
+              <h2>Datos básicos</h2>
+            </div>
+            <div className="admin-form-grid">
+              <label>
+                <span>Nombre</span>
+                <input name="name" required type="text" defaultValue={merchant.name} />
+                <small>Nombre público del comercio.</small>
+              </label>
 
-          <label>
-            <span>Slug</span>
-            <input name="slug" required type="text" defaultValue={merchant.slug} />
-          </label>
+              <label>
+                <span>Slug</span>
+                <input name="slug" required type="text" defaultValue={merchant.slug} />
+                <small>Se normaliza al guardar y debe ser único.</small>
+              </label>
 
-          <label>
-            <span>Categoría</span>
-            <select name="category_id" required defaultValue={merchant.categoryId}>
-              {categoriesResult.categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              <label>
+                <span>Categoría</span>
+                <select name="category_id" required defaultValue={merchant.categoryId}>
+                  {categoriesResult.categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <small>Categoría real de Supabase asociada al comercio.</small>
+              </label>
 
-          <label>
-            <span>Descripción</span>
-            <textarea name="description" rows={4} defaultValue={merchant.description} />
-          </label>
+              <label>
+                <span>Estado</span>
+                <select
+                  name="is_active"
+                  defaultValue={merchant.isActive === false ? "false" : "true"}
+                >
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+                <small>Controla si aparece en la parte pública.</small>
+              </label>
+            </div>
+          </section>
 
-          <label>
-            <span>Dirección</span>
-            <input name="address" type="text" defaultValue={merchant.address} />
-          </label>
+          <section className="admin-form-card" aria-label="Información pública">
+            <div className="admin-form-card-header">
+              <p className="eyebrow">Ficha pública</p>
+              <h2>Descripción y ubicación</h2>
+            </div>
+            <div className="admin-form-grid">
+              <label className="admin-form-field-wide">
+                <span>Descripción</span>
+                <textarea
+                  name="description"
+                  rows={4}
+                  defaultValue={merchant.description}
+                />
+                <small>Texto breve para explicar qué ofrece el comercio.</small>
+              </label>
 
-          <label>
-            <span>Ciudad / zona</span>
-            <input name="city" type="text" defaultValue={merchant.city ?? ""} />
-          </label>
+              <label>
+                <span>Ciudad / zona</span>
+                <input name="city" type="text" defaultValue={merchant.city ?? ""} />
+                <small>Barrio, pedanía o zona principal.</small>
+              </label>
 
-          <label>
-            <span>Teléfono</span>
-            <input name="phone" type="text" defaultValue={merchant.phone} />
-          </label>
+              <label>
+                <span>Dirección</span>
+                <input name="address" type="text" defaultValue={merchant.address} />
+                <small>Dirección visible para la ficha pública.</small>
+              </label>
+            </div>
+          </section>
 
-          <label>
-            <span>Web</span>
-            <input
-              name="website_url"
-              type="url"
-              defaultValue={merchant.websiteUrl ?? ""}
-            />
-          </label>
+          <section className="admin-form-card" aria-label="Contacto y enlaces">
+            <div className="admin-form-card-header">
+              <p className="eyebrow">Contacto</p>
+              <h2>Teléfono, web e imagen</h2>
+            </div>
+            <div className="admin-form-grid">
+              <label>
+                <span>Teléfono</span>
+                <input name="phone" type="text" defaultValue={merchant.phone} />
+                <small>Teléfono público del comercio.</small>
+              </label>
 
-          <label>
-            <span>Imagen / logo URL</span>
-            <input name="image_url" type="url" defaultValue={merchant.imageUrl ?? ""} />
-          </label>
+              <label>
+                <span>Web</span>
+                <input
+                  name="website_url"
+                  type="url"
+                  defaultValue={merchant.websiteUrl ?? ""}
+                />
+                <small>Debe ser una URL http(s) válida si se informa.</small>
+              </label>
 
-          <label>
-            <span>Estado</span>
-            <select
-              name="is_active"
-              defaultValue={merchant.isActive === false ? "false" : "true"}
-            >
-              <option value="true">Activo</option>
-              <option value="false">Inactivo</option>
-            </select>
-          </label>
+              <label className="admin-form-field-wide">
+                <span>Imagen / logo URL</span>
+                <input
+                  name="image_url"
+                  type="url"
+                  defaultValue={merchant.imageUrl ?? ""}
+                />
+                <small>No hay subida de archivos todavía; usa solo una URL externa.</small>
+              </label>
+            </div>
+          </section>
 
-          <div className="admin-form-actions">
+          <div className="admin-form-actions admin-form-footer-actions">
             <button className="button button-primary" type="submit">
               Guardar cambios
             </button>

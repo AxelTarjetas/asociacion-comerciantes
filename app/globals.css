@@ -2091,6 +2091,14 @@ img {
   box-shadow: var(--shadow-soft);
 }
 
+.admin-form-page {
+  padding-bottom: 58px;
+}
+
+.admin-form-hero {
+  margin-bottom: 6px;
+}
+
 .admin-card-actions {
   display: grid;
   min-width: 150px;
@@ -2253,11 +2261,55 @@ img {
   padding: 24px 0 56px;
 }
 
+.admin-structured-form {
+  max-width: none;
+  gap: 18px;
+  padding-top: 20px;
+}
+
+.admin-form-card {
+  display: grid;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-form-card-header {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-form-card-header h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 3vw, 1.7rem);
+  line-height: 1.12;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-form-field-wide {
+  grid-column: 1 / -1;
+}
+
 .admin-form label {
   display: grid;
   gap: 8px;
   color: var(--ink);
   font-weight: 750;
+}
+
+.admin-form label > small {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.45;
 }
 
 .admin-form input,
@@ -2274,6 +2326,18 @@ img {
 
 .admin-form textarea {
   resize: vertical;
+}
+
+.admin-form-footer-actions {
+  position: sticky;
+  bottom: 12px;
+  z-index: 5;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
 }
 
 .admin-form-error {
@@ -2525,6 +2589,10 @@ img {
   }
 
   .admin-detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2840,6 +2908,15 @@ img {
 
   .admin-detail-hero {
     padding-top: 24px;
+  }
+
+  .admin-form-card,
+  .admin-form-footer-actions {
+    padding: 14px;
+  }
+
+  .admin-form-footer-actions {
+    position: static;
   }
 
   .admin-list-meta-grid,
