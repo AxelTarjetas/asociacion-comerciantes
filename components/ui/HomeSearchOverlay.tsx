@@ -70,7 +70,6 @@ function saveRecentSearch(term: string) {
 
 export function HomeSearchOverlay({ suggestions }: HomeSearchOverlayProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   const chipSuggestions = useMemo(() => {
@@ -136,12 +135,17 @@ export function HomeSearchOverlay({ suggestions }: HomeSearchOverlayProps) {
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    const formData = new FormData(event.currentTarget);
-    const term = String(formData.get("q") || query);
+    const input = event.currentTarget.elements.namedItem("q");
+    const term = input instanceof HTMLInputElement ? input.value : "";
+    const cleanTerm = normalizeTerm(term);
 
-    if (!rememberSearch(term)) {
-      event.preventDefault();
+    event.preventDefault();
+
+    if (!rememberSearch(cleanTerm)) {
+      return;
     }
+
+    window.location.assign(`/ofertas?q=${encodeURIComponent(cleanTerm)}`);
   }
 
   return (
@@ -195,10 +199,8 @@ export function HomeSearchOverlay({ suggestions }: HomeSearchOverlayProps) {
                   autoFocus
                   id="home-search-panel-input"
                   name="q"
-                  onChange={(event) => setQuery(event.target.value)}
                   placeholder="Busca carne, pan, cafe, ropa..."
                   type="search"
-                  value={query}
                 />
                 <button type="submit">Buscar</button>
               </div>

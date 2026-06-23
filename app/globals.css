@@ -4272,6 +4272,10 @@ img {
   overflow: hidden;
 }
 
+.search-sheet-open .mobile-bottom-nav {
+  display: none;
+}
+
 .home-search-launch {
   width: min(100%, 700px);
   margin-top: 10px;
