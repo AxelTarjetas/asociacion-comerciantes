@@ -86,6 +86,32 @@ export async function getCampaignBySlug(
   return data ? mapCampaign(data as CampaignRow) : undefined;
 }
 
+export async function getCampaigns(): Promise<Campaign[]> {
+  const supabase = createSupabaseServerClient();
+
+  if (!supabase) {
+    console.warn("Supabase public client is not configured. Returning no campaigns.");
+    return [];
+  }
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("campaigns")
+    .select(campaignSelect)
+    .eq("is_active", true)
+    .or(`starts_at.is.null,starts_at.lte.${now}`)
+    .or(`ends_at.is.null,ends_at.gte.${now}`)
+    .order("starts_at", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.warn(`Could not load public campaigns from Supabase: ${error.message}`);
+    return [];
+  }
+
+  return ((data ?? []) as CampaignRow[]).map(mapCampaign);
+}
+
 export async function getCampaignOffersBySlug(
   slug: string
 ): Promise<OfferWithMerchant[]> {
