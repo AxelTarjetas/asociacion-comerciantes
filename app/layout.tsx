@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Comercio Vivo",
-  description: "Plataforma local para descubrir comercios y usar ofertas medibles."
+  description: "Ofertas de comercios cercanos para usar en tienda."
 };
 
 export default function RootLayout({
@@ -23,8 +23,8 @@ export default function RootLayout({
           </Link>
           <nav className="main-nav" aria-label="Navegación principal">
             <Link href="/ofertas">Ofertas</Link>
-            <Link href="/comercios">Comercios</Link>
-            <Link href="/#campanas">Campañas</Link>
+            <Link href="/comercios">Tiendas</Link>
+            <Link href="/#especiales">Especiales</Link>
           </nav>
         </header>
         <main>{children}</main>
@@ -33,7 +33,7 @@ export default function RootLayout({
           <Link className="brand footer-brand" href="/">
             Comercio Vivo
           </Link>
-          <p>Compra cerca. Descubre más. Haz barrio.</p>
+          <p>Compra cerca. Ahorra hoy. Haz barrio.</p>
         </footer>
       </body>
     </html>

@@ -1,159 +1,183 @@
 import Link from "next/link";
-import { MerchantCard } from "@/components/merchants/MerchantCard";
-import { OfferCard } from "@/components/offers/OfferCard";
 import { Button } from "@/components/ui/Button";
+import { getCategories } from "@/lib/queries/categories";
 import { getMerchants } from "@/lib/queries/merchants";
 import { getOffers } from "@/lib/queries/offers";
+import { formatDate } from "@/lib/utils";
 
-const quickLinks = [
-  {
-    href: "/ofertas",
-    index: "01",
-    label: "Ofertas",
-    detail: "Ahorra hoy"
-  },
-  {
-    href: "/comercios",
-    index: "02",
-    label: "Comercios",
-    detail: "Compra cerca"
-  },
-  {
-    href: "#campanas",
-    index: "03",
-    label: "Campañas",
-    detail: "Descubre planes"
-  },
-  {
-    href: "/ofertas",
-    index: "04",
-    label: "Canjear",
-    detail: "Abre tu cupón"
-  }
+const fallbackNeeds = [
+  "Comida",
+  "Carne",
+  "Pan",
+  "Belleza",
+  "Ropa",
+  "Servicios"
 ];
 
 export default async function HomePage() {
-  const [merchants, offers] = await Promise.all([getMerchants(), getOffers()]);
+  const [categories, merchants, offers] = await Promise.all([
+    getCategories(),
+    getMerchants(),
+    getOffers()
+  ]);
   const featuredOffers = offers.slice(0, 3);
-  const localMerchants = merchants.slice(0, 4);
+  const localMerchants = merchants.slice(0, 3);
+  const quickNeeds =
+    categories.length > 0
+      ? Array.from(
+          new Set([
+            ...fallbackNeeds.slice(0, 3),
+            ...categories.map((category) => category.name)
+          ])
+        ).slice(0, 6)
+      : fallbackNeeds;
 
   return (
-    <div className="public-home">
-      <section className="home-hero" aria-labelledby="home-title">
-        <img
-          src="https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=1800&q=88"
-          alt="Calle comercial con tiendas locales y vecinos paseando"
-        />
-        <div className="home-hero-shade" />
-        <div className="home-hero-content">
-          <p className="home-kicker">Tu barrio, más vivo</p>
-          <h1 id="home-title">Ofertas locales cerca de ti</h1>
-          <p>Descubre comercios, ahorra con promociones y vuelve a comprar cerca.</p>
-          <div className="hero-actions">
-            <Button href="/ofertas">Ver ofertas</Button>
-            <Button href="/comercios" variant="secondary">
-              Explorar comercios
-            </Button>
-          </div>
+    <div className="public-home app-home">
+      <section className="app-hero" aria-labelledby="home-title">
+        <div className="app-hero-copy">
+          <p className="home-kicker">Ofertas cerca de ti</p>
+          <h1 id="home-title">¿Qué necesitas comprar hoy?</h1>
+          <p>Encuentra ofertas de comercios cercanos y enseña tu cupón en tienda.</p>
         </div>
-      </section>
 
-      <div className="home-content">
-        <section className="home-search" aria-label="Buscar en Comercio Vivo">
-          <label htmlFor="home-search-input">¿Qué buscas hoy?</label>
-          <div className="home-search-field">
+        <section className="app-search-card" aria-label="Buscar ofertas">
+          <label htmlFor="home-search-input">Busca por producto o necesidad</label>
+          <div className="app-search-field">
             <span aria-hidden="true">Buscar</span>
             <input
               id="home-search-input"
               type="search"
-              placeholder="Comercios, ofertas, categorías..."
+              placeholder="Busca carne, pan, café, peluquería..."
               readOnly
             />
           </div>
         </section>
 
-        <nav className="quick-access" aria-label="Accesos rápidos">
-          {quickLinks.map((item) => (
-            <Link className="quick-access-item" href={item.href} key={item.label}>
-              <span>{item.index}</span>
-              <strong>{item.label}</strong>
-              <small>{item.detail}</small>
-            </Link>
-          ))}
-        </nav>
+        <div className="app-primary-actions" aria-label="Acciones principales">
+          <Button href="/ofertas">Ver ofertas</Button>
+          <Button href="/comercios" variant="secondary">
+            Tiendas con ofertas
+          </Button>
+        </div>
+      </section>
 
-        <section className="home-feed" aria-labelledby="featured-offers-title">
-          <div className="home-section-header">
+      <main className="home-content app-home-content">
+        <section className="need-shortcuts" aria-labelledby="needs-title">
+          <div className="app-section-heading">
+            <p className="eyebrow">Toca y mira ofertas</p>
+            <h2 id="needs-title">Comprar rápido</h2>
+          </div>
+          <div className="need-chip-grid">
+            {quickNeeds.map((need) => (
+              <Link className="need-chip" href="/ofertas" key={need}>
+                {need}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="app-home-section" aria-labelledby="today-offers-title">
+          <div className="app-section-heading app-section-heading-row">
             <div>
-              <p className="eyebrow">Para aprovechar ahora</p>
-              <h2 id="featured-offers-title">Ofertas destacadas</h2>
+              <p className="eyebrow">Para usar hoy</p>
+              <h2 id="today-offers-title">Ofertas para hoy</h2>
             </div>
             <Link className="text-link" href="/ofertas">
               Ver todas
             </Link>
           </div>
+
           {featuredOffers.length > 0 ? (
-            <div className="home-card-grid">
+            <div className="today-offer-list">
               {featuredOffers.map((offer) => (
-                <OfferCard key={offer.id} offer={offer} />
+                <Link
+                  className="today-offer-card"
+                  href={`/ofertas/${offer.slug}`}
+                  key={offer.id}
+                >
+                  <span className="today-offer-store">{offer.merchant.name}</span>
+                  <strong>{offer.title}</strong>
+                  {offer.customerBenefit ? <p>{offer.customerBenefit}</p> : null}
+                  <div className="today-offer-meta">
+                    {offer.couponCode ? (
+                      <span className="code-badge">{offer.couponCode}</span>
+                    ) : null}
+                    <small>
+                      {offer.hasEndsAt === false
+                        ? "Sin fecha límite"
+                        : `Hasta ${formatDate(offer.endsAt)}`}
+                    </small>
+                  </div>
+                </Link>
               ))}
             </div>
           ) : (
-            <p className="empty-state">Muy pronto habrá nuevas ofertas por aquí.</p>
+            <p className="empty-state">Pronto habrá ofertas para revisar aquí.</p>
           )}
+
+          <Button href="/ofertas">Ver todas las ofertas</Button>
         </section>
 
-        <section className="campaign-showcase" id="campanas" aria-labelledby="campaigns-title">
-          <div className="campaign-showcase-copy">
-            <span className="campaign-badge">Campañas activas</span>
-            <h2 id="campaigns-title">Planes para recorrer y disfrutar el barrio</h2>
-            <p>Rutas, temporadas especiales y promociones agrupadas en un solo lugar.</p>
-          </div>
-          <div className="campaign-showcase-action">
-            <strong>{offers.length} promociones disponibles</strong>
-            <Button href="/ofertas" variant="secondary">
-              Descubrir ahora
-            </Button>
-          </div>
-        </section>
-
-        <section className="home-feed" aria-labelledby="local-merchants-title">
-          <div className="home-section-header">
-            <div>
-              <p className="eyebrow">A un paseo de distancia</p>
-              <h2 id="local-merchants-title">Comercios locales</h2>
-            </div>
-            <Link className="text-link" href="/comercios">
-              Ver todos
-            </Link>
-          </div>
-          {localMerchants.length > 0 ? (
-            <div className="home-card-grid merchant-home-grid">
-              {localMerchants.map((merchant) => (
-                <MerchantCard
-                  key={merchant.id}
-                  merchant={merchant}
-                  offerCount={
-                    offers.filter((offer) => offer.merchantId === merchant.id).length
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="empty-state">Muy pronto habrá comercios para descubrir.</p>
-          )}
-        </section>
-
-        <section className="business-callout">
+        <section className="specials-panel" id="especiales" aria-labelledby="specials-title">
           <div>
-            <p className="eyebrow">Para comercios y asociaciones</p>
-            <h2>Más visibilidad. Más visitas. Resultados que puedes medir.</h2>
+            <span className="campaign-badge">Especiales</span>
+            <h2 id="specials-title">Especiales de temporada</h2>
+            <p>Ofertas agrupadas por fechas, barrios o eventos. Úsalas para encontrar planes rápidos.</p>
           </div>
-          <Button href="/comercios" variant="secondary">
-            Conocer la plataforma
+          <Button href="/ofertas" variant="secondary">
+            Ver especiales
           </Button>
         </section>
-      </div>
+
+        <section className="app-home-section" aria-labelledby="shops-title">
+          <div className="app-section-heading app-section-heading-row">
+            <div>
+              <p className="eyebrow">Dónde comprar</p>
+              <h2 id="shops-title">Tiendas con ofertas</h2>
+            </div>
+            <Link className="text-link" href="/comercios">
+              Ver tiendas
+            </Link>
+          </div>
+
+          {localMerchants.length > 0 ? (
+            <div className="shop-strip">
+              {localMerchants.map((merchant) => {
+                const offerCount = offers.filter(
+                  (offer) => offer.merchantId === merchant.id
+                ).length;
+
+                return (
+                  <Link
+                    className="shop-strip-card"
+                    href={`/comercios/${merchant.slug}`}
+                    key={merchant.id}
+                  >
+                    <span>{merchant.category.name}</span>
+                    <strong>{merchant.name}</strong>
+                    <small>
+                      {offerCount} {offerCount === 1 ? "oferta" : "ofertas"}
+                    </small>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="empty-state">Pronto habrá tiendas con ofertas.</p>
+          )}
+        </section>
+
+        <section className="business-callout app-business-callout">
+          <div>
+            <p className="eyebrow">Para comercios y asociaciones</p>
+            <h2>Publica ofertas claras y mide cuántas personas las usan.</h2>
+          </div>
+          <Button href="/comercios" variant="secondary">
+            Ver tiendas
+          </Button>
+        </section>
+      </main>
     </div>
   );
 }

@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 const navigationItems = [
   { href: "/", label: "Inicio", match: "/" },
   { href: "/ofertas", label: "Ofertas", match: "/ofertas" },
-  { href: "/comercios", label: "Comercios", match: "/comercios" },
-  { href: "/#campanas", label: "Campañas", match: "/campanas" }
+  { href: "/comercios", label: "Tiendas", match: "/comercios" },
+  { href: "/#especiales", label: "Especiales", match: "/campanas" }
 ];
 
 export function PublicNavigation() {
