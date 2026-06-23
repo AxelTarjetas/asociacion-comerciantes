@@ -65,7 +65,7 @@ export async function redeemOfferAction(formData: FormData) {
     merchant_id: offer.merchant_id,
     coupon_code: offer.coupon_code ?? null,
     qr_token: offer.qr_token ?? null,
-    notes: "Canje desde ficha pública de oferta"
+    notes: "Cupón preparado desde ficha pública de oferta"
   });
 
   if (error) {

@@ -1633,6 +1633,154 @@ img {
   line-height: 1.5;
 }
 
+.coupon-steps-block h2 {
+  max-width: 680px;
+}
+
+.coupon-steps {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coupon-steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(20, 107, 93, 0.14);
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+  padding: 13px;
+}
+
+.coupon-steps span {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary-dark);
+  color: white;
+  font-weight: 900;
+}
+
+.coupon-steps strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.coupon-panel {
+  display: grid;
+  gap: 14px;
+  background:
+    linear-gradient(180deg, #fff7f1, #fff0e9),
+    var(--accent-soft);
+}
+
+.coupon-panel h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  line-height: 1.08;
+}
+
+.coupon-store {
+  margin: -6px 0 0;
+  color: #7f4939;
+  font-weight: 850;
+}
+
+.coupon-benefit-box,
+.coupon-code-card,
+.coupon-ready-box {
+  border: 1px dashed rgba(166, 59, 37, 0.45);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px;
+}
+
+.coupon-benefit-box {
+  display: grid;
+  gap: 6px;
+}
+
+.coupon-benefit-box span,
+.coupon-code-card > span {
+  color: var(--accent-dark);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.coupon-benefit-box strong {
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.38;
+}
+
+.coupon-code-card {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.coupon-code-card .redeem-code {
+  margin-top: 0;
+  border-radius: 6px;
+  background: white;
+  padding: 12px 8px;
+  letter-spacing: 0.02em;
+}
+
+.coupon-code-card small {
+  margin: 0;
+  color: #8a5a4b;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+}
+
+.coupon-validity {
+  margin: 0;
+  color: #7f4939;
+  font-weight: 850;
+}
+
+.coupon-ready-box {
+  border-style: solid;
+  border-color: #a8d7b5;
+  background: #e7f6eb;
+  color: #246b39;
+}
+
+.coupon-ready-box strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.05rem;
+}
+
+.coupon-ready-box p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.coupon-ready-box p + p {
+  margin-top: 6px;
+}
+
+.coupon-secondary-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.coupon-secondary-actions .button {
+  width: 100%;
+}
+
 .merchant-detail-hero-grid {
   grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.05fr);
 }

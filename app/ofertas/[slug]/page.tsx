@@ -16,12 +16,13 @@ type OfferDetailPageProps = {
 };
 
 const redeemErrorMessages: Record<string, string> = {
-  "offer-not-available": "Esta oferta no está disponible para canje.",
+  "offer-not-available":
+    "Esta oferta ya no está disponible. Puede estar caducada o inactiva.",
   "redemption-limit-reached":
-    "Esta oferta ya ha alcanzado el límite de canjes.",
-  "redeem-failed": "No se pudo canjear el cupón. Inténtalo de nuevo.",
+    "Esta oferta ya ha alcanzado el límite de cupones disponibles.",
+  "redeem-failed": "No se pudo preparar el cupón. Inténtalo de nuevo.",
   "supabase-not-configured":
-    "Supabase admin no está configurado. No se puede registrar el canje."
+    "El cupón no se puede preparar ahora mismo. Inténtalo más tarde."
 };
 
 export default async function OfferDetailPage({
@@ -35,6 +36,11 @@ export default async function OfferDetailPage({
   if (!offer) {
     notFound();
   }
+
+  const isCouponPrepared = redeemed === "1";
+  const offerValidity =
+    offer.hasEndsAt === false ? "Sin fecha límite" : `Válida hasta ${formatDate(offer.endsAt)}`;
+  const benefit = offer.customerBenefit || offer.featuredPromotion || offer.description;
 
   return (
     <div className="public-detail-page offer-detail-page">
@@ -65,7 +71,7 @@ export default async function OfferDetailPage({
             <p className="public-detail-summary">{offer.description}</p>
             <div className="offer-detail-benefit">
               <span>Tu beneficio</span>
-              <strong>{offer.customerBenefit}</strong>
+              <strong>{benefit}</strong>
             </div>
           </div>
         </div>
@@ -73,6 +79,25 @@ export default async function OfferDetailPage({
 
       <section className="page-shell offer-detail-content">
         <div className="offer-info-column">
+          <section className="public-info-block coupon-steps-block">
+            <p className="eyebrow">Cómo usar esta oferta</p>
+            <h2>Prepara el cupón y enséñalo antes de pagar</h2>
+            <ol className="coupon-steps">
+              <li>
+                <span>1</span>
+                <strong>Pulsa “Preparar cupón”.</strong>
+              </li>
+              <li>
+                <span>2</span>
+                <strong>Ve a {offer.merchant.name}.</strong>
+              </li>
+              <li>
+                <span>3</span>
+                <strong>Enseña el cupón en tienda antes de pagar.</strong>
+              </li>
+            </ol>
+          </section>
+
           <section className="public-info-block">
             <p className="eyebrow">Todo lo importante</p>
             <h2>Detalles de la promoción</h2>
@@ -90,7 +115,7 @@ export default async function OfferDetailPage({
                 <strong>{offer.hasEndsAt === false ? "Sin fecha límite" : formatDate(offer.endsAt)}</strong>
               </div>
               <div>
-                <span>Límite de canjes</span>
+                <span>Límite de cupones</span>
                 <strong>{offer.maxRedemptions ?? "Sin límite indicado"}</strong>
               </div>
             </div>
@@ -98,12 +123,12 @@ export default async function OfferDetailPage({
 
           <section className="public-info-block merchant-offer-block">
             <div>
-              <p className="eyebrow">Dónde canjearla</p>
+              <p className="eyebrow">Dónde usarla</p>
               <h2>{offer.merchant.name}</h2>
               <p>{offer.merchant.address}</p>
             </div>
             <Button href={`/comercios/${offer.merchant.slug}`} variant="secondary">
-              Ver comercio
+              Ver tienda
             </Button>
           </section>
 
@@ -115,25 +140,62 @@ export default async function OfferDetailPage({
           ) : null}
         </div>
 
-        <aside className="redeem-panel" aria-label="Canjear cupón">
-          <span className="redeem-panel-label">Tu cupón</span>
-          <div className="redeem-code">{offer.couponCode}</div>
-          <p>Enséñalo en el comercio y registra aquí el canje.</p>
-          {redeemed === "1" ? (
-            <p className="redeem-message redeem-message-success">Cupón canjeado correctamente.</p>
+        <aside className="redeem-panel coupon-panel" aria-label="Cupón de la oferta">
+          <span className="redeem-panel-label">
+            {isCouponPrepared ? "Cupón preparado" : "Tu cupón"}
+          </span>
+          <h2>{offer.title}</h2>
+          <p className="coupon-store">{offer.merchant.name}</p>
+
+          <div className="coupon-benefit-box">
+            <span>Qué ganas</span>
+            <strong>{benefit}</strong>
+          </div>
+
+          <div className="coupon-code-card">
+            <span>Código para enseñar</span>
+            <div className="redeem-code">{offer.couponCode}</div>
+            {offer.qrToken ? <small>Referencia: {offer.qrToken}</small> : null}
+          </div>
+
+          <p className="coupon-validity">{offerValidity}</p>
+
+          {isCouponPrepared ? (
+            <div className="coupon-ready-box">
+              <strong>Cupón preparado.</strong>
+              <p>Enseña este cupón en tienda antes de pagar.</p>
+              <p>El comercio revisará el código para aplicar la oferta.</p>
+            </div>
           ) : null}
+
           {error ? (
             <p className="redeem-message redeem-message-error">
-              {redeemErrorMessages[error] ?? "No se pudo canjear el cupón."}
+              {redeemErrorMessages[error] ?? "No se pudo preparar el cupón."}
             </p>
           ) : null}
-          <form action={redeemOfferAction} className="redeem-form">
-            <input name="offer_slug" type="hidden" value={offer.slug} />
-            <button className="button redeem-button" type="submit">
-              Canjear cupón
-            </button>
-          </form>
-          <small>El canje quedará registrado para medir el uso de la promoción.</small>
+
+          {isCouponPrepared ? (
+            <div className="coupon-secondary-actions">
+              <Button href={`/comercios/${offer.merchant.slug}`} variant="secondary">
+                Ver tienda
+              </Button>
+              <Button href={`/ofertas/${offer.slug}`} variant="secondary">
+                Volver a la oferta
+              </Button>
+            </div>
+          ) : (
+            <form action={redeemOfferAction} className="redeem-form">
+              <input name="offer_slug" type="hidden" value={offer.slug} />
+              <button className="button redeem-button" type="submit">
+                Preparar cupón
+              </button>
+            </form>
+          )}
+
+          <small>
+            Al preparar el cupón se registra su uso para que el comercio pueda medir la
+            oferta.
+          </small>
         </aside>
       </section>
     </div>
