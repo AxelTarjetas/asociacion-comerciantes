@@ -6,12 +6,13 @@ import { getOffers } from "@/lib/queries/offers";
 import { formatDate } from "@/lib/utils";
 
 const fallbackNeeds = [
-  "Comida",
-  "Carne",
-  "Pan",
-  "Belleza",
-  "Ropa",
-  "Servicios"
+  { label: "Comida", query: "comida" },
+  { label: "Carne", query: "carne" },
+  { label: "Pan", query: "pan" },
+  { label: "Cafe", query: "cafe" },
+  { label: "Belleza", query: "belleza" },
+  { label: "Ropa", query: "ropa" },
+  { label: "Servicios", query: "servicios" }
 ];
 
 export default async function HomePage() {
@@ -25,11 +26,16 @@ export default async function HomePage() {
   const quickNeeds =
     categories.length > 0
       ? Array.from(
-          new Set([
-            ...fallbackNeeds.slice(0, 3),
-            ...categories.map((category) => category.name)
-          ])
-        ).slice(0, 6)
+          new Map<string, { label: string; query: string }>([
+            ...fallbackNeeds
+              .slice(0, 5)
+              .map((need) => [need.label, need] as const),
+            ...categories.map((category) => [
+              category.name,
+              { label: category.name, query: category.name }
+            ] as const)
+          ]).values()
+        ).slice(0, 7)
       : fallbackNeeds;
 
   return (
@@ -37,21 +43,21 @@ export default async function HomePage() {
       <section className="app-hero" aria-labelledby="home-title">
         <div className="app-hero-copy">
           <p className="home-kicker">Ofertas cerca de ti</p>
-          <h1 id="home-title">¿Qué necesitas comprar hoy?</h1>
-          <p>Encuentra ofertas de comercios cercanos y enseña tu cupón en tienda.</p>
+          <h1 id="home-title">Que necesitas comprar hoy?</h1>
+          <p>Encuentra ofertas de comercios cercanos y ensena tu cupon en tienda.</p>
         </div>
 
         <section className="app-search-card" aria-label="Buscar ofertas">
           <label htmlFor="home-search-input">Busca por producto o necesidad</label>
-          <div className="app-search-field">
-            <span aria-hidden="true">Buscar</span>
+          <form action="/ofertas" className="app-search-field" method="get">
             <input
               id="home-search-input"
+              name="q"
               type="search"
-              placeholder="Busca carne, pan, café, peluquería..."
-              readOnly
+              placeholder="Busca carne, pan, cafe, peluqueria..."
             />
-          </div>
+            <button type="submit">Buscar</button>
+          </form>
         </section>
 
         <div className="app-primary-actions" aria-label="Acciones principales">
@@ -66,12 +72,16 @@ export default async function HomePage() {
         <section className="need-shortcuts" aria-labelledby="needs-title">
           <div className="app-section-heading">
             <p className="eyebrow">Toca y mira ofertas</p>
-            <h2 id="needs-title">Comprar rápido</h2>
+            <h2 id="needs-title">Comprar rapido</h2>
           </div>
           <div className="need-chip-grid">
             {quickNeeds.map((need) => (
-              <Link className="need-chip" href="/ofertas" key={need}>
-                {need}
+              <Link
+                className="need-chip"
+                href={`/ofertas?q=${encodeURIComponent(need.query)}`}
+                key={need.label}
+              >
+                {need.label}
               </Link>
             ))}
           </div>
@@ -105,7 +115,7 @@ export default async function HomePage() {
                     ) : null}
                     <small>
                       {offer.hasEndsAt === false
-                        ? "Sin fecha límite"
+                        ? "Sin fecha limite"
                         : `Hasta ${formatDate(offer.endsAt)}`}
                     </small>
                   </div>
@@ -113,7 +123,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <p className="empty-state">Pronto habrá ofertas para revisar aquí.</p>
+            <p className="empty-state">Pronto habra ofertas para revisar aqui.</p>
           )}
 
           <Button href="/ofertas">Ver todas las ofertas</Button>
@@ -123,7 +133,7 @@ export default async function HomePage() {
           <div>
             <span className="campaign-badge">Especiales</span>
             <h2 id="specials-title">Especiales de temporada</h2>
-            <p>Ofertas agrupadas por fechas, barrios o eventos. Úsalas para encontrar planes rápidos.</p>
+            <p>Ofertas agrupadas por fechas, barrios o eventos. Usalas para encontrar planes rapidos.</p>
           </div>
           <Button href="/ofertas" variant="secondary">
             Ver especiales
@@ -133,7 +143,7 @@ export default async function HomePage() {
         <section className="app-home-section" aria-labelledby="shops-title">
           <div className="app-section-heading app-section-heading-row">
             <div>
-              <p className="eyebrow">Dónde comprar</p>
+              <p className="eyebrow">Donde comprar</p>
               <h2 id="shops-title">Tiendas con ofertas</h2>
             </div>
             <Link className="text-link" href="/comercios">
@@ -164,14 +174,14 @@ export default async function HomePage() {
               })}
             </div>
           ) : (
-            <p className="empty-state">Pronto habrá tiendas con ofertas.</p>
+            <p className="empty-state">Pronto habra tiendas con ofertas.</p>
           )}
         </section>
 
         <section className="business-callout app-business-callout">
           <div>
             <p className="eyebrow">Para comercios y asociaciones</p>
-            <h2>Publica ofertas claras y mide cuántas personas las usan.</h2>
+            <h2>Publica ofertas claras y mide cuantas personas las usan.</h2>
           </div>
           <Button href="/comercios" variant="secondary">
             Ver tiendas
