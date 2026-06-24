@@ -172,13 +172,13 @@ export default async function EditMerchantPage({
               <label>
                 <span>Ciudad / zona</span>
                 <input name="city" type="text" defaultValue={merchant.city ?? ""} />
-                <small>Barrio, pedanía o zona principal.</small>
+                <small>Ejemplo: Murcia, Puente Tocinos o tu barrio.</small>
               </label>
 
               <label>
                 <span>Dirección</span>
                 <input name="address" type="text" defaultValue={merchant.address} />
-                <small>Dirección visible para la ficha pública.</small>
+                <small>Añade calle, número y zona si la conoces.</small>
               </label>
             </div>
           </section>

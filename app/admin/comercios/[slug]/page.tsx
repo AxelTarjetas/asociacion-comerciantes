@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { isLocalAdminEnabled } from "@/lib/admin";
-import { formatDate } from "@/lib/utils";
+import {
+  formatDate,
+  getGoogleMapsSearchUrl,
+  getMerchantLocationQuality
+} from "@/lib/utils";
 import { setMerchantActiveAction } from "@/app/admin/comercios/actions";
 import { getAdminMerchantBySlug } from "@/lib/queries/merchants";
 import { getAdminOffersByMerchantId } from "@/lib/queries/offers";
@@ -30,6 +34,14 @@ function formatOfferEndDate(endsAt: string, hasEndsAt?: boolean) {
   return hasEndsAt === false ? "Sin fecha límite" : formatDate(endsAt);
 }
 
+function getLocationQualityLabel(quality: ReturnType<typeof getMerchantLocationQuality>) {
+  if (quality === "complete") {
+    return "Ubicaci\u00f3n completa";
+  }
+
+  return quality === "incomplete" ? "Ubicaci\u00f3n incompleta" : "Sin ubicaci\u00f3n";
+}
+
 export default async function AdminMerchantDetailPage({
   params,
   searchParams
@@ -47,6 +59,11 @@ export default async function AdminMerchantDetailPage({
   }
 
   const nextIsActive = merchant.isActive === false;
+  const locationQuality = getMerchantLocationQuality(merchant.address, merchant.city);
+  const directionsUrl =
+    locationQuality === "complete"
+      ? getGoogleMapsSearchUrl(merchant.address, merchant.city)
+      : null;
   const errorMessage = error ? errorMessages[error] : null;
   const [offers, redemptions] = await Promise.all([
     getAdminOffersByMerchantId(merchant.id),
@@ -162,6 +179,47 @@ export default async function AdminMerchantDetailPage({
           <span>Top oferta</span>
           <strong>{topOfferRedemptions > 0 ? topOfferRedemptions : "0"}</strong>
           <small>{topOfferRedemptions > 0 ? topOffer?.title : "Sin canjes"}</small>
+        </article>
+      </section>
+
+      <section className="admin-detail-card-section" aria-label="Ubicaci\u00f3n del comercio">
+        <div className="admin-detail-section-header">
+          <div>
+            <p className="eyebrow">{"Ubicaci\u00f3n"}</p>
+            <h2>{"Direcci\u00f3n para llegar"}</h2>
+          </div>
+          <span className={`location-quality-badge location-quality-badge-${locationQuality}`}>
+            {getLocationQualityLabel(locationQuality)}
+          </span>
+        </div>
+        <article className="admin-location-quality-card">
+          <div className="admin-location-quality-details">
+            <div>
+              <span>{"Direcci\u00f3n"}</span>
+              <strong>{merchant.address || "Sin direcci\u00f3n"}</strong>
+            </div>
+            <div>
+              <span>Ciudad / zona</span>
+              <strong>{merchant.city || "Sin ciudad o zona"}</strong>
+            </div>
+          </div>
+          {directionsUrl ? (
+            <a
+              className="button button-secondary"
+              href={directionsUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Probar en Google Maps
+            </a>
+          ) : (
+            <div className="admin-location-quality-warning">
+              <p>{"Falta direcci\u00f3n o ciudad para que C\u00f3mo llegar sea fiable."}</p>
+              <Button href={`/admin/comercios/${merchant.slug}/editar`} variant="secondary">
+                Editar comercio
+              </Button>
+            </div>
+          )}
         </article>
       </section>
 

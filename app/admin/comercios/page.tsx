@@ -5,12 +5,16 @@ import { isLocalAdminEnabled } from "@/lib/admin";
 import { setMerchantActiveAction } from "@/app/admin/comercios/actions";
 import { getAdminMerchants } from "@/lib/queries/merchants";
 import { getAdminOffers } from "@/lib/queries/offers";
+import { getGoogleMapsSearchUrl, getMerchantLocationQuality } from "@/lib/utils";
 
 type AdminMerchantsPageProps = {
   searchParams?: Promise<{
     q?: string;
+    location?: string;
   }>;
 };
+
+type LocationFilter = "all" | "complete" | "needs-attention";
 
 function normalizeSearch(value: string | undefined) {
   return (value ?? "")
@@ -46,11 +50,40 @@ function getMerchantInitials(name: string) {
     .toLocaleUpperCase();
 }
 
-function getAdminMerchantsReturnPath(filters: { q?: string }) {
+function getLocationFilter(value?: string): LocationFilter {
+  return value === "complete" || value === "needs-attention" ? value : "all";
+}
+
+function matchesLocationFilter(
+  quality: ReturnType<typeof getMerchantLocationQuality>,
+  filter: LocationFilter
+) {
+  if (filter === "complete") {
+    return quality === "complete";
+  }
+
+  return filter === "needs-attention" ? quality !== "complete" : true;
+}
+
+function getLocationQualityLabel(quality: ReturnType<typeof getMerchantLocationQuality>) {
+  if (quality === "complete") {
+    return "Ubicaci\u00f3n completa";
+  }
+
+  return quality === "incomplete" ? "Ubicaci\u00f3n incompleta" : "Sin ubicaci\u00f3n";
+}
+
+function getAdminMerchantsReturnPath(filters: { q?: string; location?: string }) {
   const params = new URLSearchParams();
 
   if (filters.q?.trim()) {
     params.set("q", filters.q.trim());
+  }
+
+  const location = getLocationFilter(filters.location);
+
+  if (location !== "all") {
+    params.set("location", location);
   }
 
   const query = params.toString();
@@ -66,12 +99,21 @@ export default async function AdminMerchantsPage({
 
   const filters = searchParams ? await searchParams : {};
   const query = normalizeSearch(filters.q);
+  const locationFilter = getLocationFilter(filters.location);
   const returnPath = getAdminMerchantsReturnPath(filters);
   const [merchants, offers] = await Promise.all([getAdminMerchants(), getAdminOffers()]);
   const activeMerchants = merchants.filter((merchant) => merchant.isActive !== false);
   const inactiveMerchants = merchants.filter((merchant) => merchant.isActive === false);
+  const completeLocationMerchants = merchants.filter(
+    (merchant) => getMerchantLocationQuality(merchant.address, merchant.city) === "complete"
+  );
   const filteredMerchants = merchants.filter(
-    (merchant) => !query || getMerchantSearchText(merchant).includes(query)
+    (merchant) =>
+      (!query || getMerchantSearchText(merchant).includes(query)) &&
+      matchesLocationFilter(
+        getMerchantLocationQuality(merchant.address, merchant.city),
+        locationFilter
+      )
   );
   const offersByMerchant = offers.reduce<Record<string, number>>((counts, offer) => {
     counts[offer.merchantId] = (counts[offer.merchantId] ?? 0) + 1;
@@ -94,7 +136,7 @@ export default async function AdminMerchantsPage({
         </div>
       </section>
 
-      <section className="admin-list-summary" aria-label="Resumen de comercios">
+      <section className="admin-list-summary admin-merchant-list-summary" aria-label="Resumen de comercios">
         <article>
           <span>Total</span>
           <strong>{merchants.length}</strong>
@@ -109,6 +151,11 @@ export default async function AdminMerchantsPage({
           <span>Inactivos</span>
           <strong>{inactiveMerchants.length}</strong>
           <small>ocultos temporalmente</small>
+        </article>
+        <article>
+          <span>{"Con ubicaci\u00f3n"}</span>
+          <strong>{completeLocationMerchants.length}</strong>
+          <small>listos para Maps</small>
         </article>
         <article>
           <span>Resultados</span>
@@ -131,6 +178,14 @@ export default async function AdminMerchantsPage({
             type="search"
           />
         </label>
+        <label>
+          {"Ubicaci\u00f3n"}
+          <select defaultValue={locationFilter} name="location">
+            <option value="all">Todos</option>
+            <option value="complete">{"Con ubicaci\u00f3n completa"}</option>
+            <option value="needs-attention">{"Sin ubicaci\u00f3n o incompleta"}</option>
+          </select>
+        </label>
         <div className="admin-filter-actions">
           <button className="button button-primary" type="submit">
             Buscar
@@ -148,6 +203,11 @@ export default async function AdminMerchantsPage({
         {filteredMerchants.map((merchant) => {
           const nextIsActive = merchant.isActive === false;
           const offerCount = offersByMerchant[merchant.id] ?? 0;
+          const locationQuality = getMerchantLocationQuality(merchant.address, merchant.city);
+          const directionsUrl =
+            locationQuality === "complete"
+              ? getGoogleMapsSearchUrl(merchant.address, merchant.city)
+              : null;
 
           return (
             <article className="admin-list-card admin-merchant-list-card" key={merchant.id}>
@@ -174,6 +234,9 @@ export default async function AdminMerchantsPage({
                     {merchant.isActive === false ? "Inactivo" : "Activo"}
                   </span>
                   <span className="admin-list-card-kicker">{merchant.category.name}</span>
+                  <span className={`location-quality-badge location-quality-badge-${locationQuality}`}>
+                    {getLocationQualityLabel(locationQuality)}
+                  </span>
                 </div>
                 <h2>
                   <Link href={`/admin/comercios/${merchant.slug}`}>{merchant.name}</Link>
@@ -196,6 +259,16 @@ export default async function AdminMerchantsPage({
                 <Button href={`/admin/comercios/${merchant.slug}/editar`} variant="secondary">
                   Editar
                 </Button>
+                {directionsUrl ? (
+                  <a
+                    className="button button-secondary"
+                    href={directionsUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Probar Maps
+                  </a>
+                ) : null}
                 <form action={setMerchantActiveAction}>
                   <input name="merchant_id" type="hidden" value={merchant.id} />
                   <input name="merchant_slug" type="hidden" value={merchant.slug} />
@@ -217,7 +290,7 @@ export default async function AdminMerchantsPage({
           <p className="empty-state">Todavía no hay comercios registrados.</p>
         ) : null}
         {merchants.length > 0 && filteredMerchants.length === 0 ? (
-          <p className="empty-state">No hay comercios que coincidan con esta búsqueda.</p>
+          <p className="empty-state">No hay comercios que coincidan con los filtros.</p>
         ) : null}
       </section>
     </div>

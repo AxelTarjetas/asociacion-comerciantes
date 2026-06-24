@@ -2102,6 +2102,37 @@ img {
   color: var(--muted);
 }
 
+.location-quality-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.location-quality-badge-complete {
+  border-color: #a8d7b5;
+  background: #eef9f1;
+  color: #1f6b37;
+}
+
+.location-quality-badge-incomplete {
+  border-color: #ead7a1;
+  background: #fff9e7;
+  color: #7a5a00;
+}
+
+.location-quality-badge-missing {
+  border-color: #f1b9a8;
+  background: #fff0eb;
+  color: #8a2d18;
+}
+
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -5010,7 +5041,7 @@ img {
 
 /* Admin merchant list: compact scan-friendly cards */
 .admin-merchant-search {
-  grid-template-columns: minmax(260px, 1.4fr) auto;
+  grid-template-columns: minmax(260px, 1.4fr) minmax(190px, 0.8fr) auto;
 }
 
 .admin-merchant-search .admin-filter-actions {
@@ -5057,6 +5088,65 @@ img {
 
 .admin-merchant-list-card h2 {
   font-size: clamp(1.25rem, 2vw, 1.55rem);
+}
+
+.admin-merchant-list-summary {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.admin-location-quality-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-location-quality-details {
+  display: grid;
+  flex: 1 1 440px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-location-quality-details > div {
+  display: grid;
+  gap: 6px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  padding: 13px;
+}
+
+.admin-location-quality-details span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.admin-location-quality-details strong {
+  overflow-wrap: anywhere;
+  font-size: 0.94rem;
+  line-height: 1.4;
+}
+
+.admin-location-quality-warning {
+  display: grid;
+  flex: 0 1 360px;
+  gap: 10px;
+  border-left: 3px solid #d8ad35;
+  padding-left: 13px;
+}
+
+.admin-location-quality-warning p {
+  margin: 0;
+  color: #735300;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .admin-merchant-location {
@@ -5108,6 +5198,10 @@ img {
     grid-column: 1 / -1;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .admin-merchant-list-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 520px) {
@@ -5119,6 +5213,20 @@ img {
 
   .admin-merchant-list-card .admin-card-actions {
     grid-template-columns: 1fr;
+  }
+
+  .admin-merchant-list-summary,
+  .admin-location-quality-details {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-location-quality-card {
+    align-items: stretch;
+  }
+
+  .admin-location-quality-card > .button,
+  .admin-location-quality-warning .button {
+    width: 100%;
   }
 
   .admin-merchant-facts span {

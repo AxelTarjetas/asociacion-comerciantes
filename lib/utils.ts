@@ -25,3 +25,19 @@ export function getGoogleMapsSearchUrl(
 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
+
+export type MerchantLocationQuality = "complete" | "incomplete" | "missing";
+
+export function getMerchantLocationQuality(
+  address?: string | null,
+  city?: string | null
+): MerchantLocationQuality {
+  const hasAddress = Boolean(address?.trim());
+  const hasCity = Boolean(city?.trim());
+
+  if (hasAddress && hasCity) {
+    return "complete";
+  }
+
+  return hasAddress || hasCity ? "incomplete" : "missing";
+}
