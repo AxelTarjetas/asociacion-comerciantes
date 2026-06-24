@@ -3,6 +3,7 @@ import { OfferCard } from "@/components/offers/OfferCard";
 import { Button } from "@/components/ui/Button";
 import { getMerchantBySlug } from "@/lib/queries/merchants";
 import { getOffersByMerchantId } from "@/lib/queries/offers";
+import { getGoogleMapsSearchUrl } from "@/lib/utils";
 
 type MerchantDetailPageProps = {
   params: Promise<{
@@ -19,6 +20,7 @@ export default async function MerchantDetailPage({ params }: MerchantDetailPageP
   }
 
   const offers = await getOffersByMerchantId(merchant.id);
+  const directionsUrl = getGoogleMapsSearchUrl(merchant.address, merchant.city);
 
   return (
     <div className="public-detail-page merchant-detail-page">
@@ -48,6 +50,16 @@ export default async function MerchantDetailPage({ params }: MerchantDetailPageP
             <p className="public-detail-summary">{merchant.description}</p>
             <div className="merchant-contact-actions">
               <Button href="#promociones">Ver ofertas</Button>
+              {directionsUrl ? (
+                <a
+                  className="button button-secondary"
+                  href={directionsUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {"C\u00f3mo llegar"}
+                </a>
+              ) : null}
               {merchant.websiteUrl ? (
                 <a className="button button-secondary" href={merchant.websiteUrl} rel="noreferrer" target="_blank">
                   Visitar web

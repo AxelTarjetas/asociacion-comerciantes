@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { OfferVisual } from "@/components/offers/OfferVisual";
 import { Button } from "@/components/ui/Button";
 import { redeemOfferAction } from "@/app/ofertas/[slug]/actions";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getGoogleMapsSearchUrl } from "@/lib/utils";
 import { getOfferBySlug } from "@/lib/queries/offers";
 
 type OfferDetailPageProps = {
@@ -42,6 +42,7 @@ export default async function OfferDetailPage({
   const offerValidity =
     offer.hasEndsAt === false ? "Sin fecha límite" : `Válida hasta ${formatDate(offer.endsAt)}`;
   const benefit = offer.customerBenefit || offer.featuredPromotion || offer.description;
+  const directionsUrl = getGoogleMapsSearchUrl(offer.merchant.address, offer.merchant.city);
 
   return (
     <div className="public-detail-page offer-detail-page">
@@ -122,9 +123,21 @@ export default async function OfferDetailPage({
               <h2>{offer.merchant.name}</h2>
               <p>{offer.merchant.address}</p>
             </div>
-            <Button href={`/comercios/${offer.merchant.slug}`} variant="secondary">
-              Ver tienda
-            </Button>
+            <div className="merchant-offer-actions">
+              <Button href={`/comercios/${offer.merchant.slug}`} variant="secondary">
+                Ver tienda
+              </Button>
+              {directionsUrl ? (
+                <a
+                  className="button button-secondary"
+                  href={directionsUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {"C\u00f3mo llegar"}
+                </a>
+              ) : null}
+            </div>
           </section>
 
           {offer.businessGoal ? (

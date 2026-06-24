@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { getCampaigns } from "@/lib/queries/campaigns";
 import { getMerchants } from "@/lib/queries/merchants";
 import { getOffers } from "@/lib/queries/offers";
-import { formatDate } from "@/lib/utils";
-import type { MerchantWithCategory } from "@/types/app";
+import { formatDate, getGoogleMapsSearchUrl } from "@/lib/utils";
 
 const visualCategories = [
   { art: "food", label: "Comida", query: "comida", tone: "mint" },
@@ -18,16 +17,6 @@ const visualCategories = [
   { art: "fun", label: "Entretenimiento", query: "ocio", tone: "violet" },
   { art: "other", label: "Otros", query: "servicios", tone: "stone" }
 ];
-
-function getMapHref(merchant: MerchantWithCategory) {
-  const query = [merchant.address, merchant.city].filter(Boolean).join(", ");
-
-  if (!query) {
-    return null;
-  }
-
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-}
 
 function getMerchantInitials(name: string) {
   return name
@@ -205,7 +194,7 @@ export default async function HomePage() {
                 const offerCount = offers.filter(
                   (offer) => offer.merchantId === merchant.id
                 ).length;
-                const mapHref = getMapHref(merchant);
+                const mapHref = getGoogleMapsSearchUrl(merchant.address, merchant.city);
 
                 return (
                   <article className="shop-saving-card" key={merchant.id}>
@@ -234,7 +223,7 @@ export default async function HomePage() {
                       <Link href={`/comercios/${merchant.slug}`}>Ver tienda</Link>
                       {mapHref ? (
                         <a href={mapHref} rel="noreferrer" target="_blank">
-                          Como llegar
+                          {"C\u00f3mo llegar"}
                         </a>
                       ) : null}
                     </div>

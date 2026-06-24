@@ -1342,6 +1342,43 @@ img {
   background: var(--primary-dark);
 }
 
+.card-action-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.card-action-group .card-primary-action {
+  margin-top: 0;
+}
+
+.card-action-group-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.card-secondary-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 0 10px;
+  color: var(--primary-dark);
+  font-size: 0.84rem;
+  font-weight: 850;
+  text-align: center;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.card-secondary-action:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+
 .public-empty-state {
   display: grid;
   grid-column: 1 / -1;
@@ -1686,6 +1723,13 @@ img {
 .merchant-offer-block p {
   margin: 8px 0 0;
   color: var(--muted);
+}
+
+.merchant-offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .offer-context-block {
@@ -3505,6 +3549,10 @@ img {
   }
 
   .merchant-offer-block .button {
+    width: 100%;
+  }
+
+  .merchant-offer-actions {
     width: 100%;
   }
 

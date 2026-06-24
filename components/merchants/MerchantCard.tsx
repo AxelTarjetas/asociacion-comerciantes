@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getGoogleMapsSearchUrl } from "@/lib/utils";
 import type { MerchantWithCategory } from "@/types/app";
 
 type MerchantCardProps = {
@@ -7,6 +8,8 @@ type MerchantCardProps = {
 };
 
 export function MerchantCard({ merchant, offerCount }: MerchantCardProps) {
+  const directionsUrl = getGoogleMapsSearchUrl(merchant.address, merchant.city);
+
   return (
     <article className="card merchant-card">
       <div className="card-media">
@@ -34,10 +37,22 @@ export function MerchantCard({ merchant, offerCount }: MerchantCardProps) {
             </span>
           ) : null}
         </div>
-        <Link className="card-primary-action merchant-card-action" href={`/comercios/${merchant.slug}`}>
-          Ver comercio
-          <span aria-hidden="true">→</span>
-        </Link>
+        <div className={directionsUrl ? "card-action-group" : "card-action-group card-action-group-single"}>
+          <Link className="card-primary-action merchant-card-action" href={`/comercios/${merchant.slug}`}>
+            Ver tienda
+            <span aria-hidden="true">{"\u2192"}</span>
+          </Link>
+          {directionsUrl ? (
+            <a
+              className="card-secondary-action"
+              href={directionsUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {"C\u00f3mo llegar"}
+            </a>
+          ) : null}
+        </div>
       </div>
     </article>
   );

@@ -9,3 +9,19 @@ export function formatDate(date: string) {
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
+
+export function getGoogleMapsSearchUrl(
+  address?: string | null,
+  city?: string | null
+) {
+  const query = [address, city]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value))
+    .join(", ");
+
+  if (!query) {
+    return null;
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
