@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OfferVisual } from "@/components/offers/OfferVisual";
 import { HomeSearchOverlay } from "@/components/ui/HomeSearchOverlay";
 import { Button } from "@/components/ui/Button";
 import { getCampaigns } from "@/lib/queries/campaigns";
@@ -77,6 +78,7 @@ export default async function HomePage() {
             href={`/ofertas/${mainOffer.slug}`}
             aria-label={`Ver oferta ${mainOffer.title}`}
           >
+            <OfferVisual className="hero-offer-visual" offer={mainOffer} />
             <span className="hero-phone-label">Para hoy</span>
             <strong>{mainOffer.title}</strong>
             <p>{mainOffer.customerBenefit || mainOffer.description}</p>
@@ -144,6 +146,7 @@ export default async function HomePage() {
           {mainOffer ? (
             <div className="today-showcase-grid">
               <Link className="today-feature-card" href={`/ofertas/${mainOffer.slug}`}>
+                <OfferVisual className="today-feature-visual" offer={mainOffer} />
                 <span className="today-feature-badge">Oferta destacada</span>
                 <small>{mainOffer.merchant.name}</small>
                 <strong>{mainOffer.title}</strong>

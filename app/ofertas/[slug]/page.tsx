@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { OfferVisual } from "@/components/offers/OfferVisual";
 import { Button } from "@/components/ui/Button";
 import { redeemOfferAction } from "@/app/ofertas/[slug]/actions";
 import { formatDate } from "@/lib/utils";
@@ -50,13 +51,7 @@ export default async function OfferDetailPage({
         </Link>
         <div className="offer-detail-hero-grid">
           <div className="public-detail-media">
-            {offer.merchant.imageUrl ? (
-              <img src={offer.merchant.imageUrl} alt={offer.merchant.name} />
-            ) : (
-              <div className="public-detail-placeholder" aria-hidden="true">
-                {offer.merchant.name.slice(0, 1)}
-              </div>
-            )}
+            <OfferVisual className="offer-detail-visual" offer={offer} />
             <span className="card-floating-badge">Oferta activa</span>
           </div>
           <div className="public-detail-intro">

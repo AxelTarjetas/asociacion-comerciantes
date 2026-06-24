@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OfferVisual } from "@/components/offers/OfferVisual";
 import { formatDate } from "@/lib/utils";
 import type { OfferWithMerchant } from "@/types/app";
 
@@ -9,19 +10,11 @@ type OfferCardProps = {
 
 export function OfferCard({ offer, showMerchant = true }: OfferCardProps) {
   return (
-    <article className="card offer-card">
+    <article className="card offer-card offer-card-visual">
       <div className="card-media">
-        {offer.merchant.imageUrl ? (
-          <img
-            className="card-image"
-            src={offer.merchant.imageUrl}
-            alt={offer.merchant.name}
-          />
-        ) : (
-          <div className="card-image-placeholder" aria-hidden="true">
-            {offer.merchant.name.slice(0, 1)}
-          </div>
-        )}
+        <Link aria-label={`Ver oferta ${offer.title}`} href={`/ofertas/${offer.slug}`}>
+          <OfferVisual offer={offer} />
+        </Link>
         <span className="card-floating-badge">Oferta</span>
       </div>
       <div className="card-body">
